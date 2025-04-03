@@ -1,103 +1,96 @@
-import Image from "next/image";
+import Slider from '@/components/slider/Slider';
+import HeroSection from '@/components/home/HeroSection';
+import FeaturedProducts from '@/components/home/FeaturedProducts';
+import SellWithUs from '@/components/home/SellWithUs';
+import GetStarted from '@/components/home/GetStarted';
+import Testimonials from '@/components/home/Testimonials';
+import Newsletter from '@/components/home/Newsletter';
+import { heroSlides } from '@/data/sliderImages';
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="overflow-hidden">
+      {/* Hero Slider with Navbar */}
+      <div className="relative h-screen">
+        {/* Slider fills the entire viewport height */}
+        <div className="h-full">
+          <Slider 
+            slides={heroSlides} 
+            autoplayInterval={6000} 
+            showDots={true}
+            className="h-full"
+          />
+          
+          {/* Enhanced gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-transparent pointer-events-none"></div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        
+        {/* Text overlay in the center of the slider */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="container mx-auto text-center text-white px-4 pt-16">
+            {/* Decorative element */}
+            <div className="flex justify-center mb-6">
+              <div className="w-12 h-[2px] bg-gold-primary relative">
+                <div className="absolute -top-[3px] left-1/2 -translate-x-1/2 w-2 h-2 bg-gold-primary rotate-45"></div>
+              </div>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-3 tracking-tight">
+              Discover <span className="text-gold-primary">Extraordinary</span> Gemstones
+            </h1>
+            
+            <div className="w-24 h-[1px] bg-gold-primary mx-auto my-6"></div>
+            
+            <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-2xl mx-auto leading-relaxed">
+              Exploring the world&apos;s finest natural treasures with unparalleled craftsmanship
+            </p>
+            
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <a 
+                href="#featured-products"
+                className="px-8 py-3 bg-transparent hover:bg-gold-primary border-2 border-gold-primary text-gold-primary hover:text-white rounded-sm transition-colors text-lg font-medium"
+              >
+                Explore Collection
+              </a>
+              <a
+                href="/about"
+                className="px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-sm transition-colors text-lg font-medium"
+              >
+                Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Remove the navbar from here since it's now included in the layout */}
+      
+      {/* Decorative element between sections */}
+      <div className="w-full overflow-hidden">
+        <div className="w-24 h-[3px] mx-auto my-12 bg-gradient-to-r from-transparent via-gold-primary to-transparent relative">
+          <div className="absolute -top-[4px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-2 border-gold-primary rounded-full"></div>
+        </div>
+      </div>
+      
+      {/* Display content below the slider */}
+      <div id="featured-products">
+        <FeaturedProducts />
+      </div>
+      
+      {/* Decorative divider */}
+      <div className="luxury-divider max-w-4xl mx-auto"></div>
+      
+      <div className="mt-16">
+        <HeroSection />
+      </div>
+      
+      <div className="mt-16">
+        <SellWithUs />
+      </div>
+      
+      <GetStarted />
+      <Testimonials />
+      <Newsletter />
+    </main>
   );
 }

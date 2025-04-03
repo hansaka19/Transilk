@@ -1,0 +1,20 @@
+This directory structure should be organized as follows:
+
+/images
+  /hero
+    - gemstone-1.jpg (Hero slider image 1)
+    - jewelry-1.jpg (Hero slider image 2)
+    - diamond-1.jpg (Hero slider image 3)
+  
+  /products
+    - ruby-1.jpg (Ruby product image)
+    - sapphire-1.jpg (Sapphire product image)
+    - emerald-ring-1.jpg (Emerald ring product image)
+    - diamond-necklace-1.jpg (Diamond necklace product image)
+  
+  /testimonials
+    - avatar-1.jpg (Testimonial avatar 1)
+    - avatar-2.jpg (Testimonial avatar 2)
+    - avatar-3.jpg (Testimonial avatar 3)
+
+Replace this placeholder file with actual images when they become available.
