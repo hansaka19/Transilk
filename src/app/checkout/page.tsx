@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore, initializeStore } from '@/store/cartStore';
+import { motion } from 'framer-motion';
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
@@ -37,82 +38,74 @@ export default function CheckoutPage() {
   const prevStep = () => setStep(step - 1);
   
   return (
-    <main className="pt-24 pb-16 bg-gray-50">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-3">Checkout</h1>
-          <p className="text-gray-600">Complete your purchase securely</p>
-        </div>
-        
-        {/* Checkout Progress */}
-        <div className="mb-10">
-          <div className="flex justify-between items-center relative">
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gray-200"></div>
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-gold-primary" 
-              style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}>
-            </div>
-            
-            {/* Step 1: Information */}
-            <div className={`relative z-10 flex flex-col items-center ${
-              step >= 1 ? 'text-gold-primary' : 'text-gray-400'
-            }`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white mb-2 ${
-                step >= 1 ? 'bg-gold-primary' : 'bg-gray-300'
-              }`}>
-                <span className="text-sm font-bold">1</span>
-              </div>
-              <span className="text-sm font-medium hidden sm:block">Information</span>
-            </div>
-            
-            {/* Step 2: Payment */}
-            <div className={`relative z-10 flex flex-col items-center ${
-              step >= 2 ? 'text-gold-primary' : 'text-gray-400'
-            }`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white mb-2 ${
-                step >= 2 ? 'bg-gold-primary' : 'bg-gray-300'
-              }`}>
-                <span className="text-sm font-bold">2</span>
-              </div>
-              <span className="text-sm font-medium hidden sm:block">Payment</span>
-            </div>
-            
-            {/* Step 3: Review */}
-            <div className={`relative z-10 flex flex-col items-center ${
-              step >= 3 ? 'text-gold-primary' : 'text-gray-400'
-            }`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white mb-2 ${
-                step >= 3 ? 'bg-gold-primary' : 'bg-gray-300'
-              }`}>
-                <span className="text-sm font-bold">3</span>
-              </div>
-              <span className="text-sm font-medium hidden sm:block">Review & Confirm</span>
-            </div>
+    <main className="pt-24 pb-16 bg-white min-h-screen">
+      <div className="container mx-auto px-4 max-w-5xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12 text-center"
+        >
+          <h1 className="text-4xl font-semibold tracking-tight uppercase mb-3">Checkout</h1>
+          <p className="text-gray-500 text-lg">Complete your purchase</p>
+        </motion.div>
+
+        <ProgressBar step={step} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8">
+            {step === 1 && <CustomerInfoForm onNext={nextStep} />}
+            {step === 2 && (
+              <PaymentForm
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                onNext={nextStep}
+                onBack={prevStep}
+              />
+            )}
+            {step === 3 && <ReviewForm onBack={prevStep} />}
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              {step === 1 && <CustomerInfoForm onNext={nextStep} />}
-              {step === 2 && <PaymentForm 
-                paymentMethod={paymentMethod} 
-                setPaymentMethod={setPaymentMethod} 
-                onNext={nextStep} 
-                onBack={prevStep} 
-              />}
-              {step === 3 && <ReviewForm onBack={prevStep} />}
-            </div>
-          </div>
-          
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-1"
+          >
             <OrderSummary />
-          </div>
+          </motion.div>
         </div>
       </div>
     </main>
   );
+// ProgressBar component for animated step indicator
+function ProgressBar({ step }: { step: number }) {
+  return (
+    <div className="flex items-center justify-between mb-12">
+      {["Information", "Payment", "Review"].map((label, index) => {
+        const active = step >= index + 1;
+        return (
+          <div key={index} className="flex-1 text-center">
+            <div
+              className={`mx-auto w-10 h-10 flex items-center justify-center rounded-full ${
+                active ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
+              }`}
+            >
+              {index + 1}
+            </div>
+            <p
+              className={`text-xs mt-2 ${
+                active ? 'text-black font-medium' : 'text-gray-400'
+              }`}
+            >
+              {label}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 }
 
 const CustomerInfoForm = ({ onNext }: { onNext: () => void }) => {

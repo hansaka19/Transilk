@@ -27,7 +27,9 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
+  // const [cartItemCount, setCartItemCount
+  const [hideNavbar, setHideNavbar] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
   
   // Move cart functionality to client-side only
   useEffect(() => {
@@ -37,6 +39,29 @@ const Navbar = () => {
     );
     return () => unsubscribe();
   }, []);
+  
+  // Hide navbar on scroll down, show on scroll up
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          if (currentScrollY > lastScrollY && currentScrollY > 80) {
+            setHideNavbar(true);
+          } else {
+            setHideNavbar(false);
+          }
+          setLastScrollY(currentScrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+    // eslint-disable-next-line
+  }, [lastScrollY]);
   
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -64,41 +89,58 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
+  // Get total quantity of items in cart (not just unique items)
+  const getCartItemCount = () => {
+    const { cartItems } = useCartStore.getState();
+    return cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+  };
+
+  const [cartItemCount, setCartItemCount] = useState(getCartItemCount());
+
+  useEffect(() => {
+    // Subscribe to cart changes and update count
+    const unsubscribe = useCartStore.subscribe(
+      state => setCartItemCount(state.cartItems.reduce((total, item) => total + (item.quantity || 1), 0))
+    );
+    return () => unsubscribe();
+  }, []);
+  
   return (
     <SafeHydrate>
-      <header className={`fixed w-full top-0 left-0 z-50 transition-all duration-500 ${
-        scrolled 
-          ? 'bg-primary/95 shadow-lg backdrop-blur-sm'
-          : 'bg-gradient-to-b from-black/70 via-black/40 to-transparent'
-      }`}>
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl md:text-3xl font-display font-bold text-white">
-                <span className="text-gold-primary">TRAN</span>SILK
-              </span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-white hover:text-gold-primary font-medium tracking-wide transition-colors relative group"
-                >
-                  {link.label}
-                  <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gold-primary transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-              ))}
+      <header
+        className={`fixed w-full top-0 left-0 z-50 flex justify-center items-center transition-all duration-500 ${
+          hideNavbar ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        }`}
+      >
+        <div className="w-full max-w-6xl mx-auto px-4 py-2">
+          <div className="flex justify-between items-center">
+            <div className="flex-1 flex items-center">
+              {/* Logo */}
+              <Link href="/" className="flex items-center">
+                <span className="text-2xl md:text-3xl font-display font-bold text-gray-500">
+                  <span className="text-gold-primary">TRAN</span>SILK
+                </span>
+              </Link>
+            </div>
+            {/* Wide pill-style navbar */}
+            <nav className="flex-1 flex justify-center">
+              <div className="bg-gray-800/50 backdrop-blur-md rounded-full shadow-lg transition-all duration-500 px-8 py-2 flex items-center gap-8 w-full max-w-2xl">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-gray-200 font-medium tracking-wide px-3 py-1 rounded-full hover:bg-gray-500 hover:text-gold-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             </nav>
-
             {/* Actions */}
-            <div className="flex items-center space-x-5">
+            <div className="flex-1 flex justify-end items-center space-x-5">
               {/* Search button */}
               <button 
-                className="text-white hover:text-gold-primary p-1 transition-colors"
+                className="text-gold-primary hover:text-gold-dark p-1 transition-colors"
                 onClick={toggleSearch}
                 aria-label="Search"
               >
@@ -106,21 +148,19 @@ const Navbar = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
-              
               {/* Account */}
               <Link 
                 href="/profile" 
-                className="text-white hover:text-gold-primary p-1 transition-colors"
+                className="text-gold-primary hover:text-gold-dark p-1 transition-colors"
                 aria-label="Profile"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </Link>
-
-              {/* Cart with client-side rendering for the count */}
+              {/* Cart */}
               <button 
-                className="text-white hover:text-gold-primary p-1 relative transition-colors"
+                className="text-gold-primary hover:text-gold-dark p-1 relative transition-colors"
                 onClick={toggleCart}
                 aria-label="Cart"
               >
@@ -133,7 +173,6 @@ const Navbar = () => {
                   </span>
                 )}
               </button>
-              
               {/* Mobile menu button */}
               <button
                 className="md:hidden text-white hover:text-secondary p-1 transition-colors"
@@ -223,7 +262,7 @@ const Navbar = () => {
 // Separate cart sidebar component to be wrapped with SafeHydrate
 const CartSidebar = ({ onClose }: { onClose: () => void }) => {
   const { cartItems, removeFromCart, increaseQuantity, decreaseQuantity, getCartTotal } = useCartStore();
-  
+
   // Format price to currency
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -231,83 +270,86 @@ const CartSidebar = ({ onClose }: { onClose: () => void }) => {
       currency: 'USD'
     }).format(price);
   };
-  
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-md h-full flex flex-col animate-slide-in-right text-gray-800">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-bold">Your Cart ({cartItems.length})</h2>
-          <button 
-            className="text-gray-500 hover:text-gray-700"
-            onClick={onClose}
-            aria-label="Close cart"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <>
+      {/* Overlay */}
+      <div className="cart-sidebar-overlay" onClick={onClose} aria-label="Close cart overlay" />
+      {/* Sidebar */}
+      <aside
+        className="cart-sidebar animate-slide-in-right fixed top-0 right-0 h-full w-full max-w-md z-[101] bg-white shadow-2xl flex flex-col"
+        style={{
+          height: '100vh',
+          maxWidth: '400px',
+          right: 0,
+          top: 0,
+        }}
+      >
+        {/* Header */}
+        <div className="cart-sidebar-header">
+          <span className="cart-sidebar-title">Your Cart</span>
+          <button className="cart-sidebar-close" onClick={onClose} aria-label="Close cart">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        
-        {/* Cart items */}
-        <div className="flex-grow overflow-auto p-4">
+        {/* Cart Items */}
+        <div className="cart-sidebar-content flex-1 overflow-y-auto">
           {cartItems.length > 0 ? (
-            <div className="space-y-4">
-              {cartItems.map((item: CartItem) => (
-                <div key={item.id} className="flex items-center border-b pb-4">
-                  <div className="h-16 w-16 relative flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                    {item.image && (
-                      <Image 
-                        src={item.image} 
-                        alt={item.name} 
-                        fill 
-                        className="object-cover" 
-                      />
-                    )}
-                  </div>
-                  <div className="ml-4 flex-grow">
-                    <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-sm text-gray-500">{item.category}</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="flex items-center border rounded">
-                        <button 
-                          onClick={() => decreaseQuantity(item.id)}
-                          className="px-2 py-1 hover:bg-gray-100 transition-colors"
-                          aria-label="Decrease quantity"
-                        >
-                          -
-                        </button>
-                        <span className="px-2">{item.quantity}</span>
-                        <button 
-                          onClick={() => increaseQuantity(item.id)}
-                          className="px-2 py-1 hover:bg-gray-100 transition-colors"
-                          aria-label="Increase quantity"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span className="font-semibold">{formatPrice(item.price * item.quantity)}</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => removeFromCart(item.id)}
-                    className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
-                    aria-label="Remove item"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+            cartItems.map((item: CartItem) => (
+              <div key={item.id} className="cart-item">
+                <div className="cart-item-img relative overflow-hidden">
+                  {item.image && (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
-              ))}
-            </div>
+                <div className="cart-item-details">
+                  <div>
+                    <div className="cart-item-title">{item.name}</div>
+                    <div className="cart-item-meta">{item.category}</div>
+                  </div>
+                  <div className="cart-item-qty-row">
+                    <button
+                      onClick={() => decreaseQuantity(item.id)}
+                      className="cart-item-qty-btn"
+                      aria-label="Decrease quantity"
+                    >-</button>
+                    <span className="cart-item-qty">{item.quantity}</span>
+                    <button
+                      onClick={() => increaseQuantity(item.id)}
+                      className="cart-item-qty-btn"
+                      aria-label="Increase quantity"
+                    >+</button>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="cart-item-price">{formatPrice(item.price * item.quantity)}</span>
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="cart-item-remove"
+                      aria-label="Remove item"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
           ) : (
-            <div className="flex flex-col items-center justify-center h-full">
+            <div className="cart-sidebar-empty">
               <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               <p className="text-gray-500">Your cart is empty</p>
               <Link 
-                href="/gemstones" 
+                href="/shop" 
                 className="mt-4 px-4 py-2 bg-secondary text-white rounded hover:bg-secondary-dark transition-colors"
                 onClick={onClose}
               >
@@ -316,9 +358,9 @@ const CartSidebar = ({ onClose }: { onClose: () => void }) => {
             </div>
           )}
         </div>
-        
+        {/* Footer */}
         {cartItems.length > 0 && (
-          <div className="p-4 border-t">
+          <div className="cart-sidebar-footer">
             <div className="flex justify-between mb-4">
               <span className="font-medium">Subtotal:</span>
               <span className="font-bold">{formatPrice(getCartTotal())}</span>
@@ -332,8 +374,8 @@ const CartSidebar = ({ onClose }: { onClose: () => void }) => {
             </Link>
           </div>
         )}
-      </div>
-    </div>
+      </aside>
+    </>
   );
 };
 

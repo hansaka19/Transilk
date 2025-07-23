@@ -1,19 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
 
-// Helper function to format price
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', {
+const formatPrice = (price: number): string =>
+  new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   }).format(price);
-};
 
-// Sample order history data
 const orderHistory = [
   {
     id: 'ORD-2023-1012',
@@ -26,9 +23,9 @@ const orderHistory = [
         name: 'Natural Ruby Gemstone',
         image: 'https://images.pexels.com/photos/3685523/pexels-photo-3685523.jpeg?auto=compress&cs=tinysrgb&w=600',
         price: 2499.99,
-        quantity: 1
-      }
-    ]
+        quantity: 1,
+      },
+    ],
   },
   {
     id: 'ORD-2023-0905',
@@ -41,13 +38,12 @@ const orderHistory = [
         name: 'Blue Sapphire Ring',
         image: 'https://images.pexels.com/photos/331958/pexels-photo-331958.jpeg?auto=compress&cs=tinysrgb&w=600',
         price: 3299.99,
-        quantity: 1
-      }
-    ]
-  }
+        quantity: 1,
+      },
+    ],
+  },
 ];
 
-// Define wishlist item type
 interface WishlistItem {
   id: string;
   name: string;
@@ -57,7 +53,6 @@ interface WishlistItem {
   rating: number;
 }
 
-// Sample wishlist data
 const wishlistItems: WishlistItem[] = [
   {
     id: 'p3',
@@ -74,14 +69,24 @@ const wishlistItems: WishlistItem[] = [
     price: 7999.99,
     image: 'https://images.pexels.com/photos/11706768/pexels-photo-11706768.jpeg?auto=compress&cs=tinysrgb&w=600',
     rating: 4.8,
-  }
+  },
 ];
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { addToCart } = useCartStore();
-  
-  // Handle add to cart from wishlist
+  const [showEditModal, setShowEditModal] = useState(false);
+  const { addToCart, cartItems } = useCartStore(); // <-- get cartItems from store
+
+  const [profile, setProfile] = useState({
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+    phone: '+1 (555) 123-4567',
+  });
+
+  const [profileImage, setProfileImage] = useState("https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=600");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleAddToCart = (item: WishlistItem) => {
     addToCart({
       id: item.id,
@@ -89,193 +94,206 @@ export default function ProfilePage() {
       price: item.price,
       quantity: 1,
       image: item.image,
-      category: item.category
+      category: item.category,
     });
   };
-  
+
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowEditModal(false);
+  };
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfile({
+      ...profile,
+      [name]: value,
+    });
+  };
+
+  // Handle image change
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (ev.target?.result) setProfileImage(ev.target.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Order count stays the same
+  function getOrderCount() {
+    return orderHistory.length;
+  }
+
+  // Wishlist count is now cart item count
+  function getWishlistCount() {
+    return cartItems.length;
+  }
+
   return (
-    <main className="bg-gray-50 min-h-screen pt-24 pb-16">
-      <div className="container mx-auto px-4 md:px-8">
-        {/* Profile Header */}
-        <div className="bg-gradient-to-r from-primary to-primary-light rounded-lg p-6 md:p-8 mb-8 text-white">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white mb-4 md:mb-0 md:mr-6">
-              <Image 
-                src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=600" 
-                alt="Profile picture"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl md:text-3xl font-bold mb-1">John Doe</h1>
-              <p className="text-white/80 mb-2">Premium Member since 2023</p>
-              <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Gems Enthusiast</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Collector</span>
-              </div>
-            </div>
-            <div className="mt-4 md:mt-0 md:ml-auto flex flex-col items-center md:items-end">
-              <div className="bg-white/20 rounded-lg px-4 py-2 text-center mb-2">
-                <span className="block text-sm text-white/80">Loyalty Points</span>
-                <span className="block text-2xl font-bold">1,250</span>
-              </div>
-              <button className="text-white bg-gold-primary hover:bg-gold-dark px-4 py-2 rounded transition-colors">
-                Edit Profile
-              </button>
-            </div>
-          </div>
+    <main className="bg-[#f9f8f6] min-h-screen pt-24 pb-16">
+      {/* Hero */}
+      <section className="relative h-[35vh] flex items-center justify-center overflow-hidden bg-[#f9f8f6] mb-12">
+        <Image
+          src={profileImage}
+          alt="Profile Banner"
+          fill
+          className="object-cover opacity-30"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="relative z-10 text-center w-full">
+          <h1 className="text-4xl md:text-5xl font-light text-white mb-2 drop-shadow-lg">
+            My Profile
+          </h1>
+          <p className="text-white/90 max-w-2xl mx-auto text-lg">
+            Manage your account, orders, and wishlist.
+          </p>
         </div>
-        
-        {/* Profile Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      </section>
+
+      <div className="max-w-6xl mx-auto px-4 md:px-8">
+        <div className="flex flex-col md:flex-row gap-10">
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <nav className="flex flex-col">
+          <aside className="w-full md:w-1/4 mb-10 md:mb-0">
+            <div className="bg-white rounded-2xl shadow p-6 sticky top-32">
+              <div className="flex flex-col items-center mb-8">
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-gold-primary mb-3 group">
+                  <Image
+                    src={profileImage}
+                    alt="Profile picture"
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Change profile image"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6" />
+                    </svg>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold">{profile.firstName} {profile.lastName}</h2>
+                  <p className="text-gray-500 text-sm">{profile.email}</p>
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="mt-3 px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors text-sm font-medium"
+                  >
+                    Edit Profile
+                  </button>
+                </div>
+              </div>
+              <nav className="flex flex-col gap-2">
                 {[
-                  { id: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-                  { id: 'orders', label: 'Order History', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
-                  { id: 'wishlist', label: 'Wishlist', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' },
-                  { id: 'settings', label: 'Account Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
-                  { id: 'logout', label: 'Logout', icon: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1' }
-                ].map(item => (
+                  {
+                    id: 'dashboard',
+                    label: 'Dashboard',
+                  },
+                  {
+                    id: 'orders',
+                    label: 'Order History',
+                  },
+                  {
+                    id: 'wishlist',
+                    label: 'Wishlist',
+                  },
+                  {
+                    id: 'settings',
+                    label: 'Account Settings',
+                  },
+                  {
+                    id: 'logout',
+                    label: 'Logout',
+                  },
+                ].map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center px-4 py-3 border-l-4 ${
-                      activeTab === item.id 
-                        ? 'border-gold-primary bg-gold-primary/5 text-primary font-medium' 
-                        : 'border-transparent hover:bg-gray-50 text-gray-600'
+                    className={`w-full text-left px-3 py-2 rounded transition-colors ${
+                      activeTab === item.id
+                        ? 'bg-gold-primary text-white font-semibold'
+                        : 'hover:bg-gold-primary/10'
                     }`}
                   >
-                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-                    </svg>
                     {item.label}
                   </button>
                 ))}
               </nav>
             </div>
-          </div>
-          
+          </aside>
+
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="flex-1 space-y-8">
             {/* Dashboard */}
             {activeTab === 'dashboard' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-6 flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-gold-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                  Dashboard
-                </h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-primary/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-600">Orders</span>
-                      <span className="text-primary bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                      </span>
-                    </div>
-                    <p className="text-2xl font-bold text-gray-800">2</p>
-                    <p className="text-sm text-gray-500">Last order on Oct 12, 2023</p>
+              <div className="bg-white rounded-2xl shadow p-8">
+                <h2 className="text-2xl font-semibold mb-6">Dashboard</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gold-primary/10 rounded-lg p-6 text-center">
+                    <div className="text-gold-primary text-3xl font-bold mb-2">{getOrderCount()}</div>
+                    <div className="text-gray-700">Orders</div>
                   </div>
-                  
-                  <div className="bg-accent-sapphire/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-600">Wishlist</span>
-                      <span className="text-accent-sapphire bg-accent-sapphire/10 rounded-full w-8 h-8 flex items-center justify-center">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </span>
-                    </div>
-                    <p className="text-2xl font-bold text-gray-800">2</p>
-                    <p className="text-sm text-gray-500">Items in your wishlist</p>
+                  <div className="bg-accent-sapphire/10 rounded-lg p-6 text-center">
+                    <div className="text-accent-sapphire text-3xl font-bold mb-2">{getWishlistCount()}</div>
+                    <div className="text-gray-700">Wishlist</div>
                   </div>
-                  
-                  <div className="bg-gold-primary/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-600">Loyalty Points</span>
-                      <span className="text-gold-primary bg-gold-primary/10 rounded-full w-8 h-8 flex items-center justify-center">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </span>
-                    </div>
-                    <p className="text-2xl font-bold text-gray-800">1,250</p>
-                    <p className="text-sm text-gray-500">Available points to redeem</p>
+                  <div className="bg-primary/10 rounded-lg p-6 text-center">
+                    <div className="text-primary text-3xl font-bold mb-2">1,250</div>
+                    <div className="text-gray-700">Loyalty Points</div>
                   </div>
                 </div>
-                
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Recent Order</h3>
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Recent Order</h3>
                   {orderHistory.length > 0 ? (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex flex-wrap justify-between mb-2">
-                        <div>
-                          <span className="text-sm text-gray-500">Order ID:</span>
-                          <span className="ml-2 text-primary font-medium">{orderHistory[0].id}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Date:</span>
-                          <span className="ml-2">{orderHistory[0].date}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Status:</span>
-                          <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">{orderHistory[0].status}</span>
-                        </div>
+                    <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
+                      <div className="h-16 w-16 relative flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                        <Image
+                          src={orderHistory[0].items[0].image}
+                          alt={orderHistory[0].items[0].name}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-                      
-                      <div className="flex items-center mt-3">
-                        <div className="h-16 w-16 relative flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                          <Image 
-                            src={orderHistory[0].items[0].image} 
-                            alt={orderHistory[0].items[0].name} 
-                            fill 
-                            className="object-cover" 
-                          />
-                        </div>
-                        <div className="ml-4">
-                          <h4 className="font-medium">{orderHistory[0].items[0].name}</h4>
-                          <p className="text-gray-500 text-sm">Quantity: {orderHistory[0].items[0].quantity}</p>
-                          <p className="text-gold-primary font-medium">{formatPrice(orderHistory[0].items[0].price)}</p>
-                        </div>
+                      <div>
+                        <h4 className="font-medium">{orderHistory[0].items[0].name}</h4>
+                        <p className="text-gray-500 text-sm">Quantity: {orderHistory[0].items[0].quantity}</p>
+                        <p className="text-gold-primary font-medium">{formatPrice(orderHistory[0].items[0].price)}</p>
+                      </div>
+                      <div className="ml-auto text-right">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('orders')}
+                          className="text-gold-primary hover:text-gold-dark text-sm font-medium"
+                        >
+                          View All Orders
+                        </button>
                       </div>
                     </div>
                   ) : (
                     <p className="text-gray-500">No recent orders.</p>
                   )}
-                  
-                  <div className="mt-4 text-right">
-                    <button 
-                      onClick={() => setActiveTab('orders')}
-                      className="text-gold-primary hover:text-gold-dark text-sm font-medium inline-flex items-center"
-                    >
-                      View All Orders
-                      <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </button>
-                  </div>
                 </div>
               </div>
             )}
-            
+
             {/* Order History */}
             {activeTab === 'orders' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-6 flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-gold-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
-                  Order History
-                </h2>
-                
+              <div className="bg-white rounded-2xl shadow p-8">
+                <h2 className="text-2xl font-semibold mb-6">Order History</h2>
                 {orderHistory.length > 0 ? (
                   <div className="space-y-4">
                     {orderHistory.map((order) => (
@@ -298,16 +316,15 @@ export default function ProfilePage() {
                             <span className="ml-2 font-medium">{formatPrice(order.total)}</span>
                           </div>
                         </div>
-                        
                         <div className="p-4">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center py-2">
                               <div className="h-16 w-16 relative flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                                <Image 
-                                  src={item.image} 
-                                  alt={item.name} 
-                                  fill 
-                                  className="object-cover" 
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  fill
+                                  className="object-cover"
                                 />
                               </div>
                               <div className="ml-4 flex-grow">
@@ -320,10 +337,9 @@ export default function ProfilePage() {
                             </div>
                           ))}
                         </div>
-                        
                         <div className="bg-gray-50 p-4 text-right">
-                          <Link 
-                            href={`/orders/${order.id}`}
+                          <Link
+                            href={order.id === 'ORD-2023-1012' ? '/product/p1' : `/orders/${order.id}`}
                             className="text-gold-primary hover:text-gold-dark text-sm font-medium"
                           >
                             View Order Details
@@ -334,11 +350,8 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <p className="text-gray-500">You haven&apos;t placed any orders yet.</p>
-                    <Link 
+                    <p className="text-gray-500">You haven't placed any orders yet.</p>
+                    <Link
                       href="/shop"
                       className="mt-4 inline-block px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors text-sm font-medium"
                     >
@@ -348,27 +361,21 @@ export default function ProfilePage() {
                 )}
               </div>
             )}
-            
+
             {/* Wishlist */}
             {activeTab === 'wishlist' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-6 flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-gold-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  Wishlist
-                </h2>
-                
+              <div className="bg-white rounded-2xl shadow p-8">
+                <h2 className="text-2xl font-semibold mb-6">Wishlist</h2>
                 {wishlistItems.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {wishlistItems.map((item) => (
                       <div key={item.id} className="border rounded-lg overflow-hidden p-4 flex">
                         <div className="h-24 w-24 relative flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                          <Image 
-                            src={item.image} 
-                            alt={item.name} 
-                            fill 
-                            className="object-cover" 
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
                           />
                         </div>
                         <div className="ml-4 flex-grow">
@@ -378,7 +385,7 @@ export default function ProfilePage() {
                               <p className="text-gray-500 text-sm">{item.category}</p>
                               <p className="text-gold-primary font-medium mt-1">{formatPrice(item.price)}</p>
                             </div>
-                            <button 
+                            <button
                               className="text-gray-400 hover:text-red-500"
                               aria-label="Remove from wishlist"
                             >
@@ -388,13 +395,13 @@ export default function ProfilePage() {
                             </button>
                           </div>
                           <div className="mt-3 flex items-center justify-between">
-                            <Link 
-                              href={`/product/${item.id}`} 
+                            <Link
+                              href={`/product/${item.id}`}
                               className="text-gold-primary hover:text-gold-dark text-sm font-medium"
                             >
                               View Details
                             </Link>
-                            <button 
+                            <button
                               onClick={() => handleAddToCart(item)}
                               className="px-3 py-1 bg-secondary hover:bg-secondary-dark text-white text-sm rounded transition-colors"
                             >
@@ -407,11 +414,8 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
                     <p className="text-gray-500">Your wishlist is empty.</p>
-                    <Link 
+                    <Link
                       href="/shop"
                       className="mt-4 inline-block px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors text-sm font-medium"
                     >
@@ -421,166 +425,193 @@ export default function ProfilePage() {
                 )}
               </div>
             )}
-            
+
             {/* Account Settings */}
             {activeTab === 'settings' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-6 flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-gold-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  </svg>
-                  Account Settings
-                </h2>
-                
-                <div className="border-b pb-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-2xl shadow p-8">
+                <h2 className="text-2xl font-semibold mb-6">Account Settings</h2>
+                <form onSubmit={handleProfileSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                      <input 
-                        type="text" 
-                        defaultValue="John" 
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={profile.firstName}
+                        onChange={handleProfileChange}
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                        required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                      <input 
-                        type="text" 
-                        defaultValue="Doe" 
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={profile.lastName}
+                        onChange={handleProfileChange}
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                        required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                      <input 
-                        type="email" 
-                        defaultValue="john.doe@example.com" 
+                      <input
+                        type="email"
+                        name="email"
+                        value={profile.email}
+                        onChange={handleProfileChange}
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                        required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      <input 
-                        type="tel" 
-                        defaultValue="+1 (555) 123-4567" 
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={profile.phone}
+                        onChange={handleProfileChange}
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
                       />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <button className="px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors"
+                    >
                       Update Information
                     </button>
                   </div>
-                </div>
-                
-                <div className="border-b pb-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Change Password</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                      <input 
-                        type="password" 
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                      <input 
-                        type="password" 
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                      <input 
-                        type="password" 
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <button className="px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors">
-                      Change Password
-                    </button>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="email-order-updates" 
-                        defaultChecked 
-                        className="h-4 w-4 text-gold-primary focus:ring-gold-primary border-gray-300 rounded"
-                      />
-                      <label htmlFor="email-order-updates" className="ml-2 block text-sm text-gray-700">
-                        Email me about order updates
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="email-promotions" 
-                        defaultChecked 
-                        className="h-4 w-4 text-gold-primary focus:ring-gold-primary border-gray-300 rounded"
-                      />
-                      <label htmlFor="email-promotions" className="ml-2 block text-sm text-gray-700">
-                        Email me about promotions and new arrivals
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        id="sms-updates" 
-                        className="h-4 w-4 text-gold-primary focus:ring-gold-primary border-gray-300 rounded"
-                      />
-                      <label htmlFor="sms-updates" className="ml-2 block text-sm text-gray-700">
-                        Send me SMS updates
-                      </label>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <button className="px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors">
-                      Update Preferences
-                    </button>
-                  </div>
-                </div>
+                </form>
               </div>
             )}
-            
-            {/* Logout - we just show a confirmation dialog here */}
+
+            {/* Logout */}
             {activeTab === 'logout' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="text-center py-8">
-                  <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <h3 className="text-xl font-bold mb-2">Are you sure you want to logout?</h3>
-                  <p className="text-gray-500 mb-6">You will be returned to the login screen.</p>
-                  <div className="flex justify-center space-x-4">
-                    <button 
-                      onClick={() => setActiveTab('dashboard')}
-                      className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <Link
-                      href="/login"
-                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded transition-colors"
-                    >
-                      Logout
-                    </Link>
-                  </div>
+              <div className="bg-white rounded-2xl shadow p-8 text-center">
+                <h2 className="text-2xl font-semibold mb-4">Logout</h2>
+                <p className="text-gray-500 mb-6">Are you sure you want to logout?</p>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <Link
+                    href="/login"
+                    className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded transition-colors"
+                  >
+                    Logout
+                  </Link>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md relative">
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowEditModal(false)}
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
+            <form onSubmit={handleProfileSubmit} className="space-y-4">
+              <div className="flex flex-col items-center">
+                <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gold-primary mb-3 group">
+                  <Image
+                    src={profileImage}
+                    alt="Profile picture"
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Change profile image"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6" />
+                    </svg>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={profile.firstName}
+                    onChange={handleProfileChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={profile.lastName}
+                    onChange={handleProfileChange}
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={profile.email}
+                  onChange={handleProfileChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={profile.phone}
+                  onChange={handleProfileChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gold-primary"
+                />
+              </div>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full px-4 py-2 bg-gold-primary hover:bg-gold-dark text-white rounded transition-colors font-semibold"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
