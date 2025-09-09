@@ -1,9 +1,31 @@
-'use client';
+"use client";
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 export default function ContactClient() {
+  const [banner, setBanner] = useState<{ image?: string; alt?: string } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/banners');
+        if (!res.ok) throw new Error('no api');
+        const j = await res.json();
+        if (!mounted) return;
+        const arr = Array.isArray(j.data) ? j.data : [];
+        const match = arr.find((b: any) => b.page === 'Contact');
+        if (match) setBanner({ image: match.image, alt: match.alt });
+      } catch (e) {
+        try { const raw = localStorage.getItem('admin_banners_v1'); if (raw) {
+          const arr = JSON.parse(raw); const match = arr.find((b: any) => b.page === 'Contact'); if (match) setBanner({ image: match.image, alt: match.alt });
+        } } catch {}
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
   return (
     <main className="min-h-screen bg-[#f9f8f6] text-[#2c2c2c] pt-32 pb-16">
       {/* Hero Banner */}
@@ -15,8 +37,8 @@ export default function ContactClient() {
       >
         <div className="relative w-full h-[40vh] md:h-[50vh]">
           <Image
-            src="https://images.pexels.com/photos/3768126/pexels-photo-3768126.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750"
-            alt="Contact Banner"
+            src={banner?.image || 'https://images.pexels.com/photos/3768126/pexels-photo-3768126.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750'}
+            alt={banner?.alt || 'Contact Banner'}
             fill
             className="object-cover"
             priority

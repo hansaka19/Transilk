@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const categories = [
 	{
@@ -31,6 +32,28 @@ const categories = [
 export default function JewelleriesPage() {
 	const router = useRouter();
 
+	const [banner, setBanner] = useState<{ image?: string; alt?: string } | null>(null);
+
+	useEffect(() => {
+		let mounted = true;
+		(async () => {
+			try {
+				const res = await fetch('/api/admin/banners');
+				if (!res.ok) throw new Error('no api');
+				const j = await res.json();
+				if (!mounted) return;
+				const arr = Array.isArray(j.data) ? j.data : [];
+				const match = arr.find((b: any) => b.page === 'Jewellery' || b.page === 'Jewelleries');
+				if (match) setBanner({ image: match.image, alt: match.alt });
+			} catch (e) {
+				try { const raw = localStorage.getItem('admin_banners_v1'); if (raw) {
+					const arr = JSON.parse(raw); const match = arr.find((b: any) => b.page === 'Jewellery' || b.page === 'Jewelleries'); if (match) setBanner({ image: match.image, alt: match.alt });
+				} } catch {}
+			}
+		})();
+		return () => { mounted = false; };
+	}, []);
+
 	const handleViewCategory = (categoryName: string) => {
 		const param = encodeURIComponent(categoryName);
 		router.push(`/jewelleries/all?category=${param}`);
@@ -46,8 +69,8 @@ export default function JewelleriesPage() {
 				className="relative h-[75vh] w-full flex items-center justify-center bg-[#f9f8f6]"
 			>
 				<Image
-					src="https://images.pexels.com/photos/10937017/pexels-photo-10937017.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750"
-					alt="Luxury jewelry collection"
+					src={banner?.image || 'https://images.pexels.com/photos/10937017/pexels-photo-10937017.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750'}
+					alt={banner?.alt || 'Luxury jewelry collection'}
 					fill
 					className="object-cover opacity-30"
 					priority

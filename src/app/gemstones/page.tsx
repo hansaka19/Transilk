@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const categories = [
 	{
@@ -30,6 +31,27 @@ const categories = [
 
 export default function GemstonesPage() {
 	const router = useRouter();
+	const [banner, setBanner] = useState<{ image?: string; alt?: string } | null>(null);
+
+	useEffect(() => {
+		let mounted = true;
+		(async () => {
+			try {
+				const res = await fetch('/api/admin/banners');
+				if (!res.ok) throw new Error('no api');
+				const j = await res.json();
+				if (!mounted) return;
+				const arr = Array.isArray(j.data) ? j.data : [];
+				const match = arr.find((b: any) => b.page === 'Gemstones');
+				if (match) setBanner({ image: match.image, alt: match.alt });
+			} catch (e) {
+				try { const raw = localStorage.getItem('admin_banners_v1'); if (raw) {
+					const arr = JSON.parse(raw); const match = arr.find((b: any) => b.page === 'Gemstones'); if (match) setBanner({ image: match.image, alt: match.alt });
+				} } catch {}
+			}
+		})();
+		return () => { mounted = false; };
+	}, []);
 
 	const handleViewCategory = (categoryName: string) => {
 		const param = encodeURIComponent(categoryName);
@@ -39,19 +61,19 @@ export default function GemstonesPage() {
 	return (
 		<main className="pt-24 pb-0 bg-[#f9f8f6] text-[#2a2a2a] font-light">
 			{/* Hero Banner */}
-			<motion.section
-				initial={{ opacity: 0, y: 40 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.7 }}
-				className="relative h-[75vh] w-full flex items-center justify-center bg-[#f9f8f6]"
-			>
-				<Image
-					src="https://images.pexels.com/photos/5801628/pexels-photo-5801628.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750"
-					alt="Hero"
-					fill
-					className="object-cover opacity-30"
-					priority
-				/>
+					<motion.section
+						initial={{ opacity: 0, y: 40 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.7 }}
+						className="relative h-[75vh] w-full flex items-center justify-center bg-[#f9f8f6]"
+					>
+						<Image
+							src={banner?.image || 'https://images.pexels.com/photos/5801628/pexels-photo-5801628.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750'}
+							alt={banner?.alt || 'Hero'}
+							fill
+							className="object-cover opacity-30"
+							priority
+						/>
 				<div className="relative z-10 text-center px-6">
 					<h1 className="text-5xl md:text-6xl font-light leading-tight">
 						Pure. Precious. <br /> Naturally Yours.

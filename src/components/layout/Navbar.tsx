@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CartItem, useCartStore, initializeStore } from '@/store/cartStore';
@@ -23,6 +24,14 @@ function SafeHydrate({ children }: { children: React.ReactNode }) {
 }
 
 const Navbar = () => {
+  const pathname = usePathname();
+  // Hide global navbar on admin dashboard routes
+  if (
+    pathname &&
+    (pathname.startsWith('/admin_dashboard') || pathname.startsWith('/admin_dashbooard'))
+  ) {
+    return null;
+  }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);

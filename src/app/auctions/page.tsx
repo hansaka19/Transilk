@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 // Sample data for demonstration
@@ -74,6 +74,32 @@ function placeBid(auctionId: string, amount: number) {
 export default function AuctionsPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [banner, setBanner] = useState<{ image?: string; alt?: string } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/banners');
+        if (!res.ok) throw new Error('no api');
+        const j = await res.json();
+        if (!mounted) return;
+        const arr = Array.isArray(j.data) ? j.data : [];
+        const match = arr.find((b: any) => b.page === 'Auctions');
+        if (match) setBanner({ image: match.image, alt: match.alt });
+      } catch (e) {
+        try {
+          const raw = localStorage.getItem('admin_banners_v1');
+          if (raw) {
+            const arr = JSON.parse(raw);
+            const match = arr.find((b: any) => b.page === 'Auctions');
+            if (match) setBanner({ image: match.image, alt: match.alt });
+          }
+        } catch {}
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
   const categories = ['All', ...Array.from(new Set(auctions.map(a => a.category)))];
 
   const filteredAuctions = auctions.filter((a) => {
@@ -92,8 +118,8 @@ export default function AuctionsPage() {
         className="relative h-[45vh] w-full flex items-center justify-center bg-[#f9f8f6] mb-10"
       >
         <Image
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1260&q=80"
-          alt="Auction Hero"
+          src={banner?.image || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1260&q=80'}
+          alt={banner?.alt || 'Auction Hero'}
           fill
           className="object-cover opacity-30"
           priority
