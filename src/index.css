@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Advent Pro', sans-serif;
+  --color-primary: #0f172a;
+  --color-accent: #2dd4bf;
+}
+
+@keyframes sliderTime {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+
+#root {
+  font-family: 'Advent Pro', sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:"wdth" 100;
+  background-color: #e0f2e9;
+  color: #01161e;
+}
