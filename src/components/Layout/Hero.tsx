@@ -1,9 +1,8 @@
-import React from 'react'
 import SplineHeroViewer from './SplineHeroViewer'
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden px-2 md:px-8 py-2 min-h-[520px] md:min-h-[720px] bg-gradient-to-b from-white via-[#f2f7f5] to-white">
+    <section className="relative overflow-hidden px-2 md:px-8 py-2 min-h-[560px] md:min-h-[780px] bg-gradient-to-b from-white via-[#f2f7f5] to-white">
       {/* Background Spline scene */}
       <SplineHeroViewer />
 
@@ -25,12 +24,13 @@ const Hero = () => {
         {/* Button */}
         <div className="mt-9">
           <div className="inline-flex rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl p-1 shadow-[0_12px_40px_-18px_rgba(1,17,30,0.45)]">
-            <button
-              type="button"
+            <a
+              href="#featured-products"
+              role="button"
               className="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-white/50 bg-white/30 text-[#01161e] font-medium uppercase tracking-tighter shadow-[0_10px_30px_-12px_rgba(1,17,30,0.35)] backdrop-blur-md hover:bg-white/40 hover:border-white/70 transition"
             >
               Dig more
-            </button>
+            </a>
           </div>
         </div>
 

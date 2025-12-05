@@ -4,13 +4,16 @@ import { HiBars3BottomRight } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import CartDrawer from "../Layout/CartDrawer";
+import { useCart } from "../../context/CartContext";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [navDrawerOpen, setNavDrawerOpen] = React.useState(false);
+  const { items } = useCart();
 
   const toggleNavDrawer = () => setNavDrawerOpen(!navDrawerOpen);
   const toggleCartDrawer = () => setDrawerOpen(!drawerOpen);
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
@@ -23,13 +26,19 @@ const Navbar = () => {
 
         {/* Center Navigation Links */}
         <div className="hidden md:flex space-x-6">
-          {["Stones", "Jewelleries", "Collections", "Support", "Journey"].map((item) => (
+          {[
+            { label: "Stones", to: "/stones" },
+            { label: "Jewelleries", to: "/jewelleries" },
+            { label: "Collections", to: "/collections" },
+            { label: "Support", to: "/support" },
+            { label: "Journey", to: "/journey" },
+          ].map((item) => (
             <Link
-              key={item}
-              to="#"
+              key={item.label}
+              to={item.to}
               className="text-[#124559] hover:text-[#01161e] text-sm font-medium uppercase"
             >
-              {item}
+              {item.label}
             </Link>
           ))}
         </div>
@@ -48,8 +57,8 @@ const Navbar = () => {
             aria-label="View shopping bag"
           >
             <HiOutlineShoppingBag className="h-6 w-6 text-[#124559]" />
-            <span className="absolute -top-1 -right-0.5 bg-[#124559] text-white text-xs rounded-full px-2 py-0.5">
-              4
+            <span className="absolute -top-1 -right-0.5 bg-[#124559] text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+              {itemCount}
             </span>
           </button>
 
@@ -98,14 +107,20 @@ const Navbar = () => {
           }`}
         >
           <div className="p-6 space-y-4">
-            {["Stones", "Jewelleries", "Collections", "Support", "Journey"].map((item) => (
+            {[
+              { label: "Stones", to: "/stones" },
+              { label: "Jewelleries", to: "/jewelleries" },
+              { label: "Collections", to: "/collections" },
+              { label: "Support", to: "/support" },
+              { label: "Journey", to: "/journey" },
+            ].map((item) => (
               <Link
-                key={item}
-                to="#"
+                key={item.label}
+                to={item.to}
                 className="block text-[#124559] hover:text-[#01161e] text-sm font-medium uppercase"
                 onClick={toggleNavDrawer}
               >
-                {item}
+                {item.label}
               </Link>
             ))}
           </div>

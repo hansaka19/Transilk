@@ -24,3 +24,24 @@
   background-color: #e0f2e9;
   color: #01161e;
 }
+
+@keyframes minecart {
+  0% {
+    transform: translateX(-10%);
+  }
+  50% {
+    transform: translateX(20%);
+  }
+  100% {
+    transform: translateX(-10%);
+  }
+}
+
+@keyframes wheelspin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

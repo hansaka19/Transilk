@@ -1,1 +1,0 @@
-import{p as t,w as e}from"./chunk-4WY6JWTD-C6mm8A-I.js";function n(){return t.jsx(t.Fragment,{children:t.jsx("div",{className:"text-red-600 text-3xl",children:"Hasa"})})}const x=e(function(){return t.jsx(n,{})});export{x as default};

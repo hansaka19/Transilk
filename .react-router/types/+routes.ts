@@ -14,20 +14,112 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/stones": {
+    params: {};
+  };
+  "/stones/:id": {
+    params: {
+      "id": string;
+    };
+  };
+  "/minecart": {
+    params: {};
+  };
+  "/jewelleries": {
+    params: {};
+  };
+  "/collections": {
+    params: {};
+  };
+  "/jewelleries/:id": {
+    params: {
+      "id": string;
+    };
+  };
+  "/support": {
+    params: {};
+  };
+  "/checkout": {
+    params: {};
+  };
+  "/paynow": {
+    params: {};
+  };
+  "/journey": {
+    params: {};
+  };
+  "/profile": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/";
+    page: "/" | "/stones" | "/stones/:id" | "/minecart" | "/jewelleries" | "/collections" | "/jewelleries/:id" | "/support" | "/checkout" | "/paynow" | "/journey" | "/profile";
   };
   "routes/_index.tsx": {
     id: "routes/_index";
     page: "/";
+  };
+  "routes/stones.tsx": {
+    id: "routes/stones";
+    page: "/stones";
+  };
+  "routes/stones.$id.tsx": {
+    id: "routes/stones.$id";
+    page: "/stones/:id";
+  };
+  "routes/minecart.tsx": {
+    id: "routes/minecart";
+    page: "/minecart";
+  };
+  "routes/jewelleries.tsx": {
+    id: "routes/jewelleries";
+    page: "/jewelleries";
+  };
+  "routes/collections.tsx": {
+    id: "routes/collections";
+    page: "/collections";
+  };
+  "routes/jewelleries.$id.tsx": {
+    id: "routes/jewelleries.$id";
+    page: "/jewelleries/:id";
+  };
+  "routes/support.tsx": {
+    id: "routes/support";
+    page: "/support";
+  };
+  "routes/checkout.tsx": {
+    id: "routes/checkout";
+    page: "/checkout";
+  };
+  "routes/paynow.tsx": {
+    id: "routes/paynow";
+    page: "/paynow";
+  };
+  "routes/journey.tsx": {
+    id: "routes/journey";
+    page: "/journey";
+  };
+  "routes/profile.tsx": {
+    id: "routes/profile";
+    page: "/profile";
   };
 };
 
 type RouteModules = {
   "root": typeof import("./src/root.tsx");
   "routes/_index": typeof import("./src/routes/_index.tsx");
+  "routes/stones": typeof import("./src/routes/stones.tsx");
+  "routes/stones.$id": typeof import("./src/routes/stones.$id.tsx");
+  "routes/minecart": typeof import("./src/routes/minecart.tsx");
+  "routes/jewelleries": typeof import("./src/routes/jewelleries.tsx");
+  "routes/collections": typeof import("./src/routes/collections.tsx");
+  "routes/jewelleries.$id": typeof import("./src/routes/jewelleries.$id.tsx");
+  "routes/support": typeof import("./src/routes/support.tsx");
+  "routes/checkout": typeof import("./src/routes/checkout.tsx");
+  "routes/paynow": typeof import("./src/routes/paynow.tsx");
+  "routes/journey": typeof import("./src/routes/journey.tsx");
+  "routes/profile": typeof import("./src/routes/profile.tsx");
 };
