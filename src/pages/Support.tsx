@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const Support: React.FC = () => {
   return (
-    <section className="relative min-h-screen bg-[#f7f7f8] text-[#111827]">
+    <section className="relative min-h-screen bg-white text-gray-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-6">
         <p className="text-xs font-medium uppercase tracking-[0.25em] text-gray-500">Support</p>
 
@@ -24,7 +24,7 @@ const Support: React.FC = () => {
       </header>
 
       <div className="relative mx-auto mt-6 max-w-6xl px-4 pb-16">
-        <div className="pointer-events-none absolute -left-40 top-1/2 hidden -translate-y-1/2 md:block">
+        <div className="pointer-events-none absolute -left-50 top-1/2 hidden -translate-y-1/2 md:block">
           <p className="-rotate-90 text-xs font-medium uppercase tracking-[0.3em] text-gray-400">
             Transilk · Service
           </p>
@@ -38,9 +38,26 @@ const Support: React.FC = () => {
           </p>
         </div>
 
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {[
+            { label: 'Avg. response', value: '< 2h', detail: 'Colombo studio hours' },
+            { label: 'Service window', value: '7 days', detail: 'post-delivery checks' },
+            { label: 'Logistics', value: 'Insured', detail: 'global carriers' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-[0_12px_28px_-20px_rgba(17,24,39,0.18)]"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-500">{stat.label}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900">{stat.value}</p>
+              <p className="text-sm text-gray-600">{stat.detail}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)]">
           <div className="space-y-6">
-            <section className="rounded-3xl bg-white p-5 shadow-[0_20px_60px_-32px_rgba(15,23,42,0.8)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_20px_60px_-32px_rgba(17,24,39,0.22)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Contact the studio</p>
               <h2 className="mt-2 text-xl font-semibold tracking-tight text-gray-900">Talk to a gem specialist</h2>
               <p className="mt-2 text-sm leading-relaxed text-gray-600">
@@ -76,7 +93,7 @@ const Support: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Quick help</p>
               <div className="mt-4 grid gap-3 text-sm text-gray-700">
                 {[
@@ -99,7 +116,7 @@ const Support: React.FC = () => {
           </div>
 
           <div className="space-y-5">
-            <section className="rounded-3xl bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Orders & shipping</p>
               <div className="mt-3 space-y-3 text-sm text-gray-700">
                 <details className="group rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
@@ -130,7 +147,7 @@ const Support: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Stones & certification</p>
               <div className="mt-3 space-y-3 text-sm text-gray-700">
                 <details className="group rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
@@ -161,7 +178,7 @@ const Support: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-white p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Care & aftercare</p>
               <div className="mt-3 space-y-3 text-sm text-gray-700">
                 <details className="group rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
@@ -191,6 +208,27 @@ const Support: React.FC = () => {
                 </details>
               </div>
             </section>
+          </div>
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)] md:flex md:items-center md:justify-between">
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-500">Need a person?</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">Get routed to the right specialist</h3>
+            <p className="max-w-2xl text-sm leading-relaxed text-gray-600">
+              Share your order ID, stone preference, or sizing notes and we’ll assign a dedicated teammate for faster replies.
+            </p>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3 md:mt-0 md:ml-6">
+            <button className="rounded-full bg-gray-900 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-white hover:bg-black transition">
+              Start chat
+            </button>
+            <a
+              href="mailto:support@transilk.studio"
+              className="rounded-full border border-gray-300 bg-white px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-800 hover:border-gray-500 transition"
+            >
+              Email us
+            </a>
           </div>
         </div>
       </div>

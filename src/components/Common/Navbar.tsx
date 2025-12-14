@@ -36,7 +36,7 @@ const Navbar = () => {
             <Link
               key={item.label}
               to={item.to}
-              className="text-[#124559] hover:text-[#01161e] text-sm font-medium uppercase"
+              className="text-gray-800 hover:text-gray-900 text-sm font-medium uppercase"
             >
               {item.label}
             </Link>
@@ -45,19 +45,19 @@ const Navbar = () => {
 
         {/* Right Side Icons */}
         <div className="flex items-center space-x-4">
-          <Link to="/profile" className="hover:text-[#01161e]">
-            <HiOutlineUser className="h-6 w-6 text-[#124559]" />
+          <Link to="/profile" className="hover:text-gray-900">
+            <HiOutlineUser className="h-6 w-6 text-gray-800" />
           </Link>
 
           {/* Cart Button */}
           <button
             onClick={toggleCartDrawer}
-            className="relative hover:text-[#01161e]"
+            className="relative hover:text-gray-900"
             type="button"
             aria-label="View shopping bag"
           >
-            <HiOutlineShoppingBag className="h-6 w-6 text-[#124559]" />
-            <span className="absolute -top-1 -right-0.5 bg-[#124559] text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+            <HiOutlineShoppingBag className="h-6 w-6 text-gray-800" />
+            <span className="absolute -top-1 -right-0.5 bg-gray-900 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
               {itemCount}
             </span>
           </button>
@@ -76,7 +76,7 @@ const Navbar = () => {
               aria-expanded={navDrawerOpen ? true : false}
               aria-controls="mobile-menu"
             >
-              <HiBars3BottomRight className="h-6 w-6 text-[#124559]" />
+              <HiBars3BottomRight className="h-6 w-6 text-gray-800" />
             </button>
           </div>
         </div>
@@ -117,7 +117,7 @@ const Navbar = () => {
               <Link
                 key={item.label}
                 to={item.to}
-                className="block text-[#124559] hover:text-[#01161e] text-sm font-medium uppercase"
+                className="block text-gray-800 hover:text-gray-900 text-sm font-medium uppercase"
                 onClick={toggleNavDrawer}
               >
                 {item.label}

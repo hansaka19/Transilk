@@ -1,7 +1,19 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-const collections = [
+type Collection = {
+  id: number
+  name: string
+  description: string
+  focus: string
+  cta: string
+  accent: string
+  image: string
+  type: string
+  priceBand: string
+}
+
+const collections: Collection[] = [
   {
     id: 1,
     name: 'Luminous Line',
@@ -9,9 +21,11 @@ const collections = [
       'Icy diamonds with sleek bezels and knife-edge profiles for a modern silhouette.',
     focus: 'Diamonds · Platinum',
     cta: '/jewelleries',
-    accent: 'from-white via-slate-50 to-slate-200',
+    accent: 'from-white via-gray-50 to-gray-200',
+    type: 'Bridal',
     image:
       'https://images.unsplash.com/photo-1504595403659-9088ce801e29?auto=format&fit=crop&w=900&q=80',
+    priceBand: '$4k - $12k',
   },
   {
     id: 2,
@@ -20,9 +34,11 @@ const collections = [
       'Cornflower to teal sapphires set in airy prongs and hidden halos.',
     focus: 'Sapphires · White gold',
     cta: '/stones',
-    accent: 'from-white via-blue-50 to-sky-100',
+    accent: 'from-white via-gray-50 to-gray-200',
+    type: 'Gemstone',
     image:
       'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80',
+    priceBand: '$2k - $8k',
   },
   {
     id: 3,
@@ -31,9 +47,11 @@ const collections = [
       'Step-cut emeralds with taper baguettes and cathedral shoulders.',
     focus: 'Emeralds · Yellow gold',
     cta: '/stones',
-    accent: 'from-white via-emerald-50 to-emerald-100',
+    accent: 'from-white via-gray-50 to-gray-200',
+    type: 'Gemstone',
     image:
       'https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&w=900&q=80',
+    priceBand: '$5k - $15k',
   },
   {
     id: 4,
@@ -42,9 +60,11 @@ const collections = [
       'High-contrast diamond & onyx pieces with mirror-finish metals — bold, limited-time drops.',
     focus: 'Diamonds · Onyx · Rhodium',
     cta: '/jewelleries',
-    accent: 'from-slate-900 via-slate-800 to-black',
+    accent: 'from-gray-100 via-gray-200 to-gray-300',
+    type: 'Limited',
     image:
       'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80',
+    priceBand: '$3k - $9k',
   },
   {
     id: 5,
@@ -53,19 +73,41 @@ const collections = [
       'Holiday pairings of sapphires, rubies, and emeralds in warm gold — crafted for gifting season.',
     focus: 'Sapphires · Rubies · Emeralds',
     cta: '/collections/holiday',
-    accent: 'from-white via-rose-50 to-emerald-50',
+    accent: 'from-white via-gray-50 to-gray-200',
+    type: 'Seasonal',
     image:
       'https://images.unsplash.com/photo-1543701275-23ccef2d6dd0?auto=format&fit=crop&w=900&q=80',
+    priceBand: '$1.5k - $6k',
   },
 ]
 
 const Collections: React.FC = () => {
-  const featured = useMemo(() => collections[0], [])
-  const others = useMemo(() => collections.slice(1), [])
+  const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('All')
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    return collections.filter((collection) => {
+      const matchesType = typeFilter === 'All' || collection.type === typeFilter
+      const matchesSearch =
+        !term ||
+        collection.name.toLowerCase().includes(term) ||
+        collection.description.toLowerCase().includes(term) ||
+        collection.focus.toLowerCase().includes(term)
+      return matchesType && matchesSearch
+    })
+  }, [search, typeFilter])
+
+  const featured = filtered[0]
+  const others = filtered.slice(1)
   const activeLabel = featured?.name ?? 'Collections'
+  const typeFilters = useMemo(
+    () => ['All', ...Array.from(new Set(collections.map((c) => c.type)))],
+    [],
+  )
 
   return (
-    <section className="relative min-h-screen bg-[#f7f7f8] text-[#111827]">
+    <section className="relative min-h-screen bg-white text-gray-900">
 
       {/* Header */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-6">
@@ -80,7 +122,7 @@ const Collections: React.FC = () => {
           <button className="hover:text-gray-900">Bespoke</button>
         </nav>
 
-        <p className="text-xs text-gray-500">{collections.length} sets</p>
+        <p className="text-xs text-gray-500">{filtered.length} sets</p>
       </header>
 
       {/* Page body */}
@@ -102,10 +144,47 @@ const Collections: React.FC = () => {
             Ready-made lineups and design languages pairing stones with finishes & silhouettes.
             Choose a base, then we tailor it to your size and preferred center stone.
           </p>
+          <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {typeFilters.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTypeFilter(t)}
+                  className={`rounded-full border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition ${
+                    typeFilter === t
+                      ? 'border-gray-900 bg-gray-900 text-white shadow-[0_10px_26px_-18px_rgba(17,24,39,0.6)]'
+                      : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 shadow-[0_10px_26px_-18px_rgba(17,24,39,0.5)]">
+              <svg
+                className="h-4 w-4 text-gray-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="16.65" y1="16.65" x2="21" y2="21" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search collections, stones, themes"
+                className="w-56 bg-transparent text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Featured collection row */}
-        {featured && (
+        {featured ? (
           <div className="mt-8 flex flex-col gap-8 md:flex-row">
 
             {/* Left: text */}
@@ -119,6 +198,9 @@ const Collections: React.FC = () => {
               <p className="max-w-sm text-sm leading-relaxed text-gray-600">
                 {featured.description}
               </p>
+              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+                {featured.priceBand} · {featured.type}
+              </div>
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <Link
@@ -147,6 +229,10 @@ const Collections: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/20" />
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="mt-8 rounded-2xl border border-dashed border-gray-300 bg-white/70 px-4 py-10 text-center text-sm text-gray-500">
+            No collections match your filters.
           </div>
         )}
 
@@ -187,6 +273,9 @@ const Collections: React.FC = () => {
                       </h3>
                       <p className="text-sm text-gray-600 leading-relaxed">
                         {collection.description}
+                      </p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                        {collection.type} · {collection.priceBand}
                       </p>
                     </div>
 

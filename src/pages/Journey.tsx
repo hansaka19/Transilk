@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const Journey: React.FC = () => {
   return (
-    <section className="relative min-h-screen bg-[#f7f7f8] text-[#111827]">
+    <section className="relative min-h-screen bg-white text-gray-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-6">
         <p className="text-xs font-medium uppercase tracking-[0.25em] text-gray-500">Journey</p>
 
@@ -24,7 +24,7 @@ const Journey: React.FC = () => {
       </header>
 
       <div className="relative mx-auto mt-6 max-w-6xl px-4 pb-16">
-        <div className="pointer-events-none absolute left-2 top-1/2 hidden -translate-y-1/2 md:block">
+        <div className="pointer-events-none absolute -left-50 top-1/2 hidden -translate-y-1/2 md:block">
           <p className="-rotate-90 text-xs font-medium uppercase tracking-[0.3em] text-gray-400">Transilk · Journey</p>
         </div>
 
@@ -36,9 +36,26 @@ const Journey: React.FC = () => {
           </p>
         </div>
 
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {[
+            { label: 'Traceability', value: 'Tagged', detail: 'Origin noted on intake' },
+            { label: 'Turnaround', value: '3–4 weeks', detail: 'typical custom build' },
+            { label: 'Aftercare', value: 'Included', detail: 'cleaning + checks' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-[0_12px_28px_-20px_rgba(17,24,39,0.18)]"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-500">{stat.label}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900">{stat.value}</p>
+              <p className="text-sm text-gray-600">{stat.detail}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="mt-10 grid gap-10 md:grid-cols-[1.2fr_1fr]">
           <div className="space-y-6">
-            <section className="rounded-3xl bg-white p-6 shadow-[0_20px_60px_-32px_rgba(15,23,42,0.8)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_20px_60px_-32px_rgba(17,24,39,0.22)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Timeline</p>
 
               <div className="mt-5 space-y-6">
@@ -111,7 +128,7 @@ const Journey: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-white p-6 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Why Sri Lanka</p>
               <p className="mt-3 text-sm leading-relaxed text-gray-700">
                 For centuries, Sri Lanka has been a crossroads for sapphires and colored gems. Transilk draws from this
@@ -122,7 +139,7 @@ const Journey: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-white via-slate-50 to-slate-200 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.85)]">
+            <section className="overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-gray-50 to-gray-200 shadow-[0_24px_70px_-40px_rgba(17,24,39,0.24)]">
               <div className="relative h-56 w-full">
                 <img
                   src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1100&q=80"
@@ -137,7 +154,7 @@ const Journey: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-white p-6 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Craft & commitment</p>
 
               <div className="mt-4 grid gap-4 text-sm text-gray-700 md:grid-cols-2">
@@ -160,7 +177,7 @@ const Journey: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-3xl bg-white p-6 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.7)]">
+            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-400">Continue the journey</p>
               <p className="mt-3 text-sm leading-relaxed text-gray-700">
                 Start by reserving a stone in your virtual tray, or step straight into a signature collection and adapt
@@ -182,6 +199,30 @@ const Journey: React.FC = () => {
                 </Link>
               </div>
             </section>
+          </div>
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(17,24,39,0.18)] md:flex md:items-center md:justify-between">
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-500">Ready to begin?</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">Plan your parcel or design in one call</h3>
+            <p className="max-w-2xl text-sm leading-relaxed text-gray-600">
+              Share your budget, preferred shapes, and timeline—we’ll outline sourcing options and a build schedule in the first conversation.
+            </p>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3 md:mt-0 md:ml-6">
+            <Link
+              to="/minecart"
+              className="rounded-full bg-gray-900 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-white hover:bg-black transition"
+            >
+              Start a tray
+            </Link>
+            <Link
+              to="/support"
+              className="rounded-full border border-gray-300 bg-white px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-800 hover:border-gray-500 transition"
+            >
+              Talk to support
+            </Link>
           </div>
         </div>
       </div>

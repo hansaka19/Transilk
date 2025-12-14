@@ -1,99 +1,196 @@
 {
-  "_CartContext-DQYM0tLl.js": {
-    "file": "assets/CartContext-DQYM0tLl.js",
+  "_CartContext-83LCCXp5.js": {
+    "file": "assets/CartContext-83LCCXp5.js",
     "name": "CartContext",
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js"
     ]
   },
-  "_Stones-C9fxnlqT.js": {
-    "file": "assets/Stones-C9fxnlqT.js",
+  "_FilterStrip-zhgGy80w.js": {
+    "file": "assets/FilterStrip-zhgGy80w.js",
+    "name": "FilterStrip",
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js"
+    ]
+  },
+  "_Jewelleries-5xAZjLhm.js": {
+    "file": "assets/Jewelleries-5xAZjLhm.js",
+    "name": "Jewelleries",
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_FilterStrip-zhgGy80w.js"
+    ]
+  },
+  "_ProductDetail-Cb2W1f57.js": {
+    "file": "assets/ProductDetail-Cb2W1f57.js",
+    "name": "ProductDetail",
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_Stones-Dsqum6xH.js",
+      "_Jewelleries-5xAZjLhm.js",
+      "_CartContext-83LCCXp5.js"
+    ]
+  },
+  "_Stones-Dsqum6xH.js": {
+    "file": "assets/Stones-Dsqum6xH.js",
     "name": "Stones",
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_FilterStrip-zhgGy80w.js"
     ]
   },
-  "_chunk-4WY6JWTD-C-vBroLq.js": {
-    "file": "assets/chunk-4WY6JWTD-C-vBroLq.js",
+  "_chunk-4WY6JWTD-p-je1ueu.js": {
+    "file": "assets/chunk-4WY6JWTD-p-je1ueu.js",
     "name": "chunk-4WY6JWTD"
   },
   "node_modules/@react-router/dev/dist/config/defaults/entry.client.tsx": {
-    "file": "assets/entry.client-DjY_R1CK.js",
+    "file": "assets/entry.client-C71UCSfk.js",
     "name": "entry.client",
     "src": "node_modules/@react-router/dev/dist/config/defaults/entry.client.tsx",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js"
     ]
   },
   "src/root.tsx?__react-router-build-client-route": {
-    "file": "assets/root-DsXbI0p6.js",
+    "file": "assets/root-DxQ24F3n.js",
     "name": "root",
     "src": "src/root.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js",
-      "_CartContext-DQYM0tLl.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_CartContext-83LCCXp5.js"
     ],
     "css": [
-      "assets/root-C6FuZwyY.css"
+      "assets/root-UTQOLWq1.css"
     ]
   },
   "src/routes/_index.tsx?__react-router-build-client-route": {
-    "file": "assets/_index-DxgDmRpg.js",
+    "file": "assets/_index-D5z_KB9U.js",
     "name": "_index",
     "src": "src/routes/_index.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_Stones-Dsqum6xH.js",
+      "_Jewelleries-5xAZjLhm.js",
+      "_FilterStrip-zhgGy80w.js"
+    ]
+  },
+  "src/routes/checkout.tsx?__react-router-build-client-route": {
+    "file": "assets/checkout-CLOQsx1I.js",
+    "name": "checkout",
+    "src": "src/routes/checkout.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_CartContext-83LCCXp5.js"
     ]
   },
   "src/routes/collections.tsx?__react-router-build-client-route": {
-    "file": "assets/collections-CwB_-CeF.js",
+    "file": "assets/collections-B7duMZ-k.js",
     "name": "collections",
     "src": "src/routes/collections.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js"
+    ]
+  },
+  "src/routes/jewelleries.$id.tsx?__react-router-build-client-route": {
+    "file": "assets/jewelleries._id-DPlq5IPb.js",
+    "name": "jewelleries._id",
+    "src": "src/routes/jewelleries.$id.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_ProductDetail-Cb2W1f57.js",
+      "_Stones-Dsqum6xH.js",
+      "_FilterStrip-zhgGy80w.js",
+      "_Jewelleries-5xAZjLhm.js",
+      "_CartContext-83LCCXp5.js"
     ]
   },
   "src/routes/jewelleries.tsx?__react-router-build-client-route": {
-    "file": "assets/jewelleries-34_Klb55.js",
+    "file": "assets/jewelleries-5-IfjH-a.js",
     "name": "jewelleries",
     "src": "src/routes/jewelleries.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_Jewelleries-5xAZjLhm.js",
+      "_FilterStrip-zhgGy80w.js"
+    ]
+  },
+  "src/routes/journey.tsx?__react-router-build-client-route": {
+    "file": "assets/journey-9PdterCM.js",
+    "name": "journey",
+    "src": "src/routes/journey.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js"
     ]
   },
   "src/routes/minecart.tsx?__react-router-build-client-route": {
-    "file": "assets/minecart-CQQHspYP.js",
+    "file": "assets/minecart-BPjx4uCy.js",
     "name": "minecart",
     "src": "src/routes/minecart.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_CartContext-83LCCXp5.js"
+    ]
+  },
+  "src/routes/paynow.tsx?__react-router-build-client-route": {
+    "file": "assets/paynow-CmgPXsL5.js",
+    "name": "paynow",
+    "src": "src/routes/paynow.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_CartContext-83LCCXp5.js"
+    ]
+  },
+  "src/routes/profile.tsx?__react-router-build-client-route": {
+    "file": "assets/profile-BKcFhScm.js",
+    "name": "profile",
+    "src": "src/routes/profile.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js"
     ]
   },
   "src/routes/stones.$id.tsx?__react-router-build-client-route": {
-    "file": "assets/stones._id-DFDemd1V.js",
+    "file": "assets/stones._id-Zxg2h4wP.js",
     "name": "stones._id",
     "src": "src/routes/stones.$id.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js",
-      "_Stones-C9fxnlqT.js",
-      "_CartContext-DQYM0tLl.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_ProductDetail-Cb2W1f57.js",
+      "_Stones-Dsqum6xH.js",
+      "_FilterStrip-zhgGy80w.js",
+      "_Jewelleries-5xAZjLhm.js",
+      "_CartContext-83LCCXp5.js"
     ]
   },
   "src/routes/stones.tsx?__react-router-build-client-route": {
-    "file": "assets/stones-YIIvq1UH.js",
+    "file": "assets/stones-CeU6-JOE.js",
     "name": "stones",
     "src": "src/routes/stones.tsx?__react-router-build-client-route",
     "isEntry": true,
     "imports": [
-      "_chunk-4WY6JWTD-C-vBroLq.js",
-      "_Stones-C9fxnlqT.js"
+      "_chunk-4WY6JWTD-p-je1ueu.js",
+      "_Stones-Dsqum6xH.js",
+      "_FilterStrip-zhgGy80w.js"
+    ]
+  },
+  "src/routes/support.tsx?__react-router-build-client-route": {
+    "file": "assets/support-kedmsHNC.js",
+    "name": "support",
+    "src": "src/routes/support.tsx?__react-router-build-client-route",
+    "isEntry": true,
+    "imports": [
+      "_chunk-4WY6JWTD-p-je1ueu.js"
     ]
   }
 }

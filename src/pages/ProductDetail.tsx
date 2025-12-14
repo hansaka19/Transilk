@@ -56,19 +56,52 @@ const ProductDetail = () => {
   }, [product])
   const [selectedBucket, setSelectedBucket] = useState<number | undefined>(currentBucket)
   const galleryImages = useMemo(() => {
+    if (!product) return []
     const base = product.image
     const desaturated = base.includes('?') ? `${base}&sat=-35` : `${base}?sat=-35`
     return [base, desaturated]
-  }, [product.image])
+  }, [product])
   const [activeImage, setActiveImage] = useState(0)
+
+  const unitPriceNumber =
+    product && typeof product.price === 'number'
+      ? product.price
+      : Number(String(product?.price ?? '').replace(/[^0-9.]/g, '')) || 0
+
+  const totalPriceText = useMemo(() => {
+    if (!product) return '$0'
+    if (!unitPriceNumber) return product.price
+    return `$${(unitPriceNumber * quantity).toLocaleString()}`
+  }, [unitPriceNumber, quantity, product])
+
+  const availableBuckets = useMemo(() => {
+    if (!product || product.kind !== 'stone') return []
+    const buckets = stonesData
+      .filter((s) => s.category === product.category)
+      .map((s) => caratBucket(s.carat))
+      .filter((b): b is number => b !== undefined)
+    return Array.from(new Set(buckets)).sort((a, b) => a - b)
+  }, [product])
+
+  const bucketStones = useMemo(() => {
+    if (!product || product.kind !== 'stone') return []
+    return stonesData.filter(
+      (s) =>
+        s.id !== product.id &&
+        s.category === product.category &&
+        selectedBucket !== undefined &&
+        caratBucket(s.carat) === selectedBucket,
+    )
+  }, [product, selectedBucket])
 
   useEffect(() => {
     setSelectedBucket(currentBucket)
   }, [currentBucket])
 
   useEffect(() => {
+    if (!product) return
     setActiveImage(0)
-  }, [product.id])
+  }, [product])
 
   const handlePrevImage = () =>
     setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
@@ -91,16 +124,6 @@ const ProductDetail = () => {
     )
   }
 
-  const unitPriceNumber =
-    typeof product.price === 'number'
-      ? product.price
-      : Number(String(product.price).replace(/[^0-9.]/g, '')) || 0
-
-  const totalPriceText = useMemo(() => {
-    if (!unitPriceNumber) return product.price
-    return `$${(unitPriceNumber * quantity).toLocaleString()}`
-  }, [unitPriceNumber, quantity, product.price])
-
   const handleDec = () => setQuantity((q) => (q > 1 ? q - 1 : q))
   const handleInc = () => setQuantity((q) => q + 1)
 
@@ -109,26 +132,6 @@ const ProductDetail = () => {
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }
-
-  const availableBuckets = useMemo(() => {
-    if (!product || product.kind !== 'stone') return []
-    const buckets = stonesData
-      .filter((s) => s.category === product.category)
-      .map((s) => caratBucket(s.carat))
-      .filter((b): b is number => b !== undefined)
-    return Array.from(new Set(buckets)).sort((a, b) => a - b)
-  }, [product])
-
-  const bucketStones = useMemo(() => {
-    if (!product || product.kind !== 'stone') return []
-    return stonesData.filter(
-      (s) =>
-        s.id !== product.id &&
-        s.category === product.category &&
-        selectedBucket !== undefined &&
-        caratBucket(s.carat) === selectedBucket,
-    )
-  }, [product, selectedBucket])
 
   const related =
     product.kind === 'stone'

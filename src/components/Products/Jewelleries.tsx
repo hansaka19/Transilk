@@ -1,6 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import FilterStrip from './FilterStrip'
+import { formatCarat, formatMoney, type FilterValues, type ShapeKey } from './filterUtils'
 
 export type Jewellery = {
   id: number
@@ -12,6 +14,7 @@ export type Jewellery = {
   price: string | number
   image: string
   origin?: string
+  shape: ShapeKey
 }
 
 const jewelleries: Jewellery[] = [
@@ -25,6 +28,7 @@ const jewelleries: Jewellery[] = [
     price: '$6,400',
     image: 'https://images.unsplash.com/photo-1504595403659-9088ce801e29?auto=format&fit=crop&w=900&q=80',
     origin: 'Handmade in Sri Lanka',
+    shape: 'cushion',
   },
   {
     id: 2,
@@ -36,6 +40,7 @@ const jewelleries: Jewellery[] = [
     price: '$3,800',
     image: 'https://images.unsplash.com/photo-1506617420156-8e4536971650?auto=format&fit=crop&w=900&q=80',
     origin: 'Made to order',
+    shape: 'marquise',
   },
   {
     id: 3,
@@ -47,6 +52,7 @@ const jewelleries: Jewellery[] = [
     price: 12400,
     image: 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80&sat=-10',
     origin: 'Limited run',
+    shape: 'round',
   },
   {
     id: 4,
@@ -58,6 +64,7 @@ const jewelleries: Jewellery[] = [
     price: '$5,600',
     image: 'https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&w=900&q=80',
     origin: 'Colombian stones',
+    shape: 'oval',
   },
   {
     id: 5,
@@ -69,6 +76,7 @@ const jewelleries: Jewellery[] = [
     price: '$9,200',
     image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80&sat=-30',
     origin: 'Atelier edition',
+    shape: 'emerald',
   },
   {
     id: 6,
@@ -80,14 +88,36 @@ const jewelleries: Jewellery[] = [
     price: '$2,450',
     image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80&sat=20',
     origin: 'Sri Lankan sapphires',
+    shape: 'round',
   },
 ]
 
 export const jewelleriesData = jewelleries
 
+const defaultFilters: FilterValues = {
+  price: { from: 160, to: 105335 },
+  carat: { from: 0.18, to: 5.16 },
+  shape: null,
+}
+
+const navOptions = ['New', 'Featured', 'All metals', 'All stones', 'All cuts'] as const
+
 const Jewelleries = () => {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string>('All')
+  const [filters, setFilters] = useState<FilterValues>(defaultFilters)
+  const [navSelection, setNavSelection] = useState<(typeof navOptions)[number]>('Featured')
+
+  const parsePrice = useCallback((value: Jewellery['price']) => {
+    if (typeof value === 'number') return value
+    const numeric = Number(String(value).replace(/[^0-9.]/g, ''))
+    return Number.isFinite(numeric) ? numeric : 0
+  }, [])
+
+  const parseCarat = useCallback((value: string) => {
+    const numeric = Number(String(value).replace(/[^0-9.]/g, ''))
+    return Number.isFinite(numeric) ? numeric : 0
+  }, [])
 
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(jewelleries.map((j) => j.category)))],
@@ -96,7 +126,7 @@ const Jewelleries = () => {
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
-    return jewelleries.filter((item) => {
+    const base = jewelleries.filter((item) => {
       const matchesCategory = category === 'All' || item.category === category
       const matchesSearch =
         !term ||
@@ -104,31 +134,77 @@ const Jewelleries = () => {
         item.description.toLowerCase().includes(term) ||
         item.stones.toLowerCase().includes(term) ||
         item.category.toLowerCase().includes(term)
-      return matchesCategory && matchesSearch
+      const matchesPrice = parsePrice(item.price) >= filters.price.from && parsePrice(item.price) <= filters.price.to
+      const matchesCarat = parseCarat('1.00') >= filters.carat.from && parseCarat('1.00') <= filters.carat.to // jewellery carat proxy
+      const matchesShape = !filters.shape || item.shape === filters.shape
+      return matchesCategory && matchesSearch && matchesPrice && matchesCarat && matchesShape
     })
-  }, [category, search])
+
+    let next = [...base]
+    switch (navSelection) {
+      case 'New':
+        next = next.sort((a, b) => b.id - a.id)
+        break
+      case 'Featured':
+        next = next.filter((item) => item.id <= 3)
+        break
+      case 'All metals':
+        next = next.sort((a, b) => a.metal.localeCompare(b.metal))
+        break
+      case 'All stones':
+        next = next.sort((a, b) => a.stones.localeCompare(b.stones))
+        break
+      case 'All cuts':
+        next = next.sort((a, b) => a.shape.localeCompare(b.shape))
+        break
+      default:
+        break
+    }
+    return next
+  }, [category, search, filters, parseCarat, parsePrice, navSelection])
+
+  const filterChips = useMemo(() => {
+    const chips: string[] = []
+    if (category !== 'All') chips.push(category)
+    if (filters.shape) chips.push(`${filters.shape} cut`)
+    chips.push(`${formatCarat(filters.carat.from)} – ${formatCarat(filters.carat.to)}`)
+    chips.push(`${formatMoney(filters.price.from)} – ${formatMoney(filters.price.to)}`)
+    if (search.trim()) chips.push(`“${search.trim()}”`)
+    return chips
+  }, [category, filters, search])
+
+  const handleReset = () => {
+    setCategory('All')
+    setFilters(defaultFilters)
+    setSearch('')
+  }
 
   const featured = filtered[0]
   const others = filtered.slice(1)
 
   return (
-    <section className="relative min-h-screen bg-[#f7f7f8] text-[#111827]">
+    <section className="relative min-h-screen bg-white text-gray-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 pt-6">
         <p className="text-xs font-medium uppercase tracking-[0.25em] text-gray-500">Jewelleries Library</p>
 
         <nav className="hidden gap-8 text-xs font-medium uppercase tracking-[0.25em] text-gray-500 md:flex">
-          <button className="hover:text-gray-900">New</button>
-          <button className="border-b border-gray-900 pb-1 text-gray-900">Featured</button>
-          <button className="hover:text-gray-900">All metals</button>
-          <button className="hover:text-gray-900">All stones</button>
-          <button className="hover:text-gray-900">All cuts</button>
+          {navOptions.map((opt) => (
+            <button
+              key={opt}
+              className={`${navSelection === opt ? 'text-gray-900 border-b border-gray-900 pb-1' : 'hover:text-gray-900'}`}
+              onClick={() => setNavSelection(opt)}
+              type="button"
+            >
+              {opt}
+            </button>
+          ))}
         </nav>
 
         <p className="text-xs text-gray-500">{filtered.length} pieces</p>
       </header>
 
       <div className="relative mx-auto mt-6 max-w-6xl px-4 pb-16">
-        <div className="pointer-events-none absolute left-2 top-1/2 hidden -translate-y-1/2 md:block">
+        <div className="pointer-events-none absolute -left-50 top-1/2 hidden -translate-y-1/2 md:block">
           <p className="-rotate-90 text-xs font-medium uppercase tracking-[0.3em] text-gray-400">
             Jewels · Library
           </p>
@@ -182,6 +258,36 @@ const Jewelleries = () => {
           </div>
         </div>
 
+        <div className="mt-6 space-y-2">
+          <FilterStrip onChange={(payload) => setFilters(payload)} />
+          <div className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Shape: {filters.shape ?? 'Any shape'} • Carat: {formatCarat(filters.carat.from)} –{' '}
+              {formatCarat(filters.carat.to)}
+            </span>
+            <span>
+              Budget: {formatMoney(filters.price.from)} – {formatMoney(filters.price.to)}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {filterChips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-700"
+              >
+                {chip}
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 underline underline-offset-4"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+
         {featured ? (
           <>
             <div className="mt-8 flex flex-col gap-8 md:flex-row">
@@ -219,15 +325,16 @@ const Jewelleries = () => {
               </div>
 
               <div className="relative flex flex-1 items-center justify-center">
-                <div className="relative h-72 w-full max-w-xl overflow-hidden rounded-3xl bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.75)]">
-                  <img
-                    src={featured.image}
-                    alt={featured.name}
-                    className="h-full w-full object-contain md:-translate-y-3 md:-rotate-6"
-                  />
-                </div>
+              <div className="relative h-72 w-full max-w-xl overflow-hidden rounded-3xl bg-gradient-to-br from-white via-gray-50 to-gray-200 shadow-[0_30px_80px_-40px_rgba(17,24,39,0.65)]">
+                <img
+                  src={featured.image}
+                  alt={featured.name}
+                  className="h-full w-full object-contain md:-translate-y-3 md:-rotate-6"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/30" />
               </div>
             </div>
+          </div>
 
             <div className="mt-10">
               <div className="mb-3 flex items-center justify-between">
@@ -240,7 +347,7 @@ const Jewelleries = () => {
                   <Link
                     to={`/jewelleries/${item.id}`}
                     key={item.id}
-                    className="group flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-[0_16px_40px_-26px_rgba(15,23,42,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_50px_-28px_rgba(15,23,42,0.8)]"
+                    className="group flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_18px_40px_-26px_rgba(17,24,39,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-28px_rgba(17,24,39,0.28)]"
                   >
                     <div className="relative h-36 w-full overflow-hidden rounded-xl bg-gray-50">
                       <img
