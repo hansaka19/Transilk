@@ -14,7 +14,7 @@ export function createEyeglassWater(reduced,hits){
   Object.assign(el.style,{position:'absolute',display:'none',borderRadius:`${45+rnd(i)*12}% ${42+rnd(i+1)*14}% 49% 47%`,
    background:large?'radial-gradient(ellipse at 29% 22%,rgba(241,228,201,.42) 0%,rgba(174,142,95,.16) 8%,transparent 24%),linear-gradient(145deg,rgba(163,128,79,.23),transparent 48%,rgba(65,43,23,.26))':'linear-gradient(145deg,rgba(231,218,190,.4),rgba(72,49,26,.30) 46%,rgba(171,135,85,.23))',
    boxShadow:'inset .5px .8px 1px rgba(223,207,173,.4), inset -.6px -1px 1.3px rgba(31,23,15,.46),0 1px 1px rgba(0,8,11,.28)',
-   backdropFilter:large?'url(#transilk-wet-glass) blur(.3px) contrast(1.08)':'none',webkitBackdropFilter:large?'blur(.5px)':'none'});
+   backdropFilter:large?'blur(1.1px) brightness(1.06) contrast(1.06)':'none'   /* SVG displacement backdrop re-ran every frame over WebGL: main cause of stutter */,webkitBackdropFilter:large?'blur(.5px)':'none'});
   Object.assign(trail.style,{position:'absolute',display:'none',borderRadius:'50%',background:'linear-gradient(to bottom,transparent,rgba(157,120,74,.12) 75%,rgba(80,54,29,.15))'});
   layer.append(trail,el);
   // Pairs of large beads meet in each wave and merge, overcoming surface pinning.

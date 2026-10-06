@@ -8,7 +8,7 @@ import { installGemOptics } from './gem-optics.js';
 import { createEyeglassWater } from './eyeglass-water.js';
 import { NOISE_GLSL } from './noise.js';
 import { createCoverFracture } from './cover-fracture.js';
-import { applyRock, applyBrokenGeode } from './stone-material.js';
+import { applyRock, applyBrokenGeode, stoneTexturesReady } from './stone-material.js';
 
 const params=new URLSearchParams(location.search), reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const canvas=document.querySelector('.hero__canvas'),status=document.querySelector('.scene-status');
@@ -62,7 +62,8 @@ async function main(){
     else if(m.name.includes('broken')){m.envMapIntensity=.35;m.flatShading=false;applyBrokenGeode(m,renderer);}
     // crystal/agate skin of the pieces: same teal-blue as the cavity, not bleached white
     else if(m.name.includes('agate')){m.roughness=.32;m.envMapIntensity=.18;m.color.setRGB(.04,.15,.3);}
-    else {m.roughness=.32;m.envMapIntensity=.15;m.color.setRGB(.012,.06,.15);}
+    // druzy crystals: same teal-blue as the cavity, hard flat facets that catch the light
+    else {m.vertexColors=false;m.flatShading=true;m.color.setRGB(.05,.3,.52);m.roughness=.1;m.metalness=.25;m.envMapIntensity=2.2;m.specularIntensity=1;m.clearcoat=.6;m.clearcoatRoughness=.05;}
     m.needsUpdate=true;}
   }});
  // Batch static environment surfaces by material while preserving their world transforms.
@@ -117,11 +118,29 @@ async function main(){
  addEventListener('pointermove',e=>{pointer.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);pointerUV.set(e.clientX/innerWidth,1-e.clientY/innerHeight);lastInput=performance.now();});
  addEventListener('pointerleave',()=>pointer.set(0,0));
  function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<820?39:30;camera.updateProjectionMatrix();if(reduced&&window.transilkScene?.ready)renderer.render(scene,camera);}addEventListener('resize',resize);resize();
+ // Fragments are small and many: they receive shadows but do not render into the shadow map.
+ fragments.scene.traverse(o=>{if(o.isMesh)o.castShadow=false;});
+ // Pre-warm while the loader is still up: decode/upload every texture and buffer and compile every
+ // shader now, so nothing stalls when the stone lands (f45) or breaks (f62).
+ await stoneTexturesReady();
+ {const vis=[closed.scene,geode.scene,gem.scene,fragments.scene].map(o=>o.visible);for(const o of [closed.scene,geode.scene,gem.scene,fragments.scene])o.visible=true;fracture.update(90);
+  const culled=[];scene.traverse(o=>{if(o.isMesh||o.isPoints||o.isSprite){culled.push([o,o.frustumCulled]);o.frustumCulled=false;}
+   for(const m of [].concat(o.material||[]))for(const k in m){const v=m[k];if(v&&v.isTexture)renderer.initTexture(v);}});
+  camera.position.set(0,.3,7);camera.lookAt(0,.3,0);
+  await renderer.compileAsync(scene,camera);const rt=new THREE.WebGLRenderTarget(64,36);renderer.setRenderTarget(rt);renderer.render(scene,camera);renderer.setRenderTarget(null);rt.dispose();
+  for(const [o,c] of culled)o.frustumCulled=c;[closed.scene.visible,geode.scene.visible,gem.scene.visible,fragments.scene.visible]=vis;fracture.update(1);}
  document.body.classList.remove('is-loading');document.body.classList.add('is-intro','is-live');status.hidden=true;
  const clock=new THREE.Clock(),started=performance.now();let elapsed=0,frames=0;
+ // Slow-motion shot: the fall and the water impact (frames 30–54) play at 0.2x, easing in and out.
+ const SLOW_FROM=30,SLOW_TO=54,SLOW_RATE=.2,RAMP=5;
+ const rate=f=>{const a=THREE.MathUtils.smoothstep(f,SLOW_FROM-RAMP,SLOW_FROM),b=1-THREE.MathUtils.smoothstep(f,SLOW_TO,SLOW_TO+RAMP);return 1-(1-SLOW_RATE)*Math.min(a,b);};
+ const wallAt=[0];for(let f=1;f<=168*8;f++){const x=1+f/8;wallAt.push(wallAt[f-1]+(1/8)/24/rate(x-1/16));}
+ const WALL_END=wallAt[wallAt.length-1];
+ function storyFrame(sec){if(sec>=WALL_END)return 168;let lo=0,hi=wallAt.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(wallAt[m]<=sec)lo=m;else hi=m;}return 1+(lo+(sec-wallAt[lo])/(wallAt[hi]-wallAt[lo]))/8;}
  const fixed=params.has('frame')?Number(params.get('frame')):null;
  const replay=document.querySelector('.scene-replay');replay.hidden=reduced||fixed!==null;replay.addEventListener('click',()=>{elapsed=0;frames=0;renderer.shadowMap.autoUpdate=true;renderer.shadowMap.needsUpdate=true;clock.start();document.body.classList.remove('is-revealed');});
- function animate(){const rawDelta=clock.getDelta(),dt=Math.min(rawDelta,.05);elapsed+=frames<2?dt:rawDelta;const frame=reduced?168:fixed??Math.min(168,elapsed*24+1),t=(frame-1)/24;
+ function animate(){const rawDelta=clock.getDelta(),dt=Math.min(rawDelta,.05);elapsed+=Math.min(rawDelta,frames<2?.05:.1);   // a single slow frame never makes the story jump
+  const frame=reduced?168:fixed??storyFrame(elapsed),t=(frame-1)/24,storyClock=t+Math.max(0,elapsed-WALL_END);
   sample(hero,dropTrack,frame);closed.scene.visible=frame<62;geode.scene.visible=true;gem.scene.visible=true;
   fragments.scene.visible=frame>=62;fracture.update(frame);
   for(let i=0;i<N;i++){const d=drops[i],age=t-d.birth,y=d.y0+age*d.vy-4.905*age*age;const visible=age>0&&y>WATER_Y&&age<1.6;dummy.position.set(d.x+d.vx*age,y,d.z+d.vz*age);vel.set(d.vx,d.vy-9.81*age,d.vz);const sp=vel.length();if(sp>1e-4)dummy.quaternion.setFromUnitVectors(up,vel.divideScalar(sp));dummy.scale.set(visible?d.r:0,visible?d.r*(1+sp*.28):0,visible?d.r:0);dummy.updateMatrix();dropMesh.setMatrixAt(i,dummy.matrix);}dropMesh.instanceMatrix.needsUpdate=true;
@@ -140,11 +159,11 @@ async function main(){
   const hitAge=t-46/24;if(hitAge>=0&&!reduced)camera.position.y+=Math.sin(hitAge*65)*Math.exp(-hitAge*9)*.018;
   camera.lookAt(tracking);camera.rotateZ(Math.sin(t*5.25)*.0025*walking);
   const pulse=Math.max(0,1-(t-46/24)*1.5)*(t>=46/24?1:0)+Math.max(0,1-(t-81/24)*1.5)*(t>=81/24?1:0);
-  water.material.uniforms.uTime.value=reduced?0:elapsed;water.material.uniforms.uPulse.value=pulse;
-  for(const f of fogUniforms){f.plane.quaternion.copy(camera.quaternion);f.uniforms.uTime.value=reduced?0:elapsed;f.uniforms.uPointer.value.lerp(performance.now()-lastInput<1400?pointerUV:new THREE.Vector2(-5,-5),dt*2);}
+  water.material.uniforms.uTime.value=reduced?0:storyClock;water.material.uniforms.uPulse.value=pulse;
+  for(const f of fogUniforms){f.plane.quaternion.copy(camera.quaternion);f.uniforms.uTime.value=reduced?0:storyClock;f.uniforms.uPointer.value.lerp(performance.now()-lastInput<1400?pointerUV:new THREE.Vector2(-5,-5),dt*2);}
   optics?.update();
   if(frame>=96)document.body.classList.add('is-revealed');
-  renderer.render(scene,camera);if(frame>=168)renderer.shadowMap.autoUpdate=false;const lensDrops=lens.update(reduced?0:(fixed!==null?(params.has("lens")?t:0):elapsed));frames++;
+  renderer.render(scene,camera);if(frame>=168)renderer.shadowMap.autoUpdate=false;const lensDrops=lens.update(reduced?0:(fixed!==null?(params.has("lens")?t:0):storyClock));frames++;
   // Read-only diagnostics support visual QA without controlling scene behavior.
   window.transilkScene={ready:true,frame,camera:camera.position.toArray(),target:tracking.toArray(),projectedTarget:tracking.clone().project(camera).toArray(),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,elapsed,frames,wallSeconds:(performance.now()-started)/1000,mode:'realtime-threejs',quality:ultra?'4k':'native',drawingBuffer:[canvas.width,canvas.height],cameraShot:frame<25?'water-approach':frame<110?'fall-and-reveal':frame<160?'return-to-water':'water-hold',lensDrops,fracture:fracture.diagnostics(frame)};
   if(!reduced)requestAnimationFrame(animate);

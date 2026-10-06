@@ -6,11 +6,13 @@ import { NOISE_GLSL } from './noise.js';
 // rind, 1 = cavity wall) and draw the real cross-section per pixel: basalt rind, a thin dark skin,
 // fine concentric agate bands and a sparkling quartz crust.
 const loader = new THREE.TextureLoader();
-let tex;
+let tex, ready = Promise.resolve();
+export const stoneTexturesReady = () => ready;   // resolves once the rock textures have decoded
 function textures(renderer) {
   if (tex) return tex;
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  const diff = loader.load('assets/realtime/tex/dark_rock_diff_4k.jpg'), disp = loader.load('assets/realtime/tex/dark_rock_disp_4k.jpg');
+  let n = 0, done; ready = new Promise(r => { done = r; }); const ok = () => { if (++n === 2) done(); };
+  const diff = loader.load('assets/realtime/tex/dark_rock_diff_4k.jpg', ok, undefined, ok), disp = loader.load('assets/realtime/tex/dark_rock_disp_4k.jpg', ok, undefined, ok);
   diff.colorSpace = THREE.SRGBColorSpace;
   for (const t of [diff, disp]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = aniso; }
   return (tex = { diff, disp });
