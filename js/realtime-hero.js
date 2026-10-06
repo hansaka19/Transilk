@@ -14,18 +14,20 @@ const params=new URLSearchParams(location.search), reduced=matchMedia('(prefers-
 const canvas=document.querySelector('.hero__canvas'),status=document.querySelector('.scene-status');
 const rootURL='assets/realtime/';
 const ultra=new URLSearchParams(location.search).get('quality')==='4k';
+// Phones (iPhone 12 mini etc.): iOS Safari reloads the tab when WebGL memory runs out, so use a lighter budget.
+const lowMem=!ultra&&(matchMedia('(pointer: coarse)').matches||Math.min(screen.width,screen.height)<820);
 const clamp=THREE.MathUtils.clamp;
 main().catch(error=>{console.error('Realtime scene',error);document.body.classList.remove('is-loading');document.body.classList.add('is-static','is-intro','is-revealed');status.textContent='3D could not load. Showing the render.';document.querySelector('.hero__poster').src='assets/forest-geode-cinematic.jpg';});
 async function main(){
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
- renderer.setPixelRatio(ultra?Math.min(2,3840/innerWidth):Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
+ renderer.setPixelRatio(ultra?Math.min(2,3840/innerWidth):Math.min(devicePixelRatio,lowMem?1.25:1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.92;
  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  const scene=new THREE.Scene();scene.background=new THREE.Color(0x061316);scene.fog=new THREE.FogExp2(0x0b2025,.135);
  const camera=new THREE.PerspectiveCamera(35,1,.04,100);
  const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();scene.environment=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();scene.environmentIntensity=.22;
  scene.add(new THREE.HemisphereLight(0xc2e2e7,0x252d20,.35));
- const key=new THREE.DirectionalLight(0x9fc9dd,1.35);key.position.set(-2,6,4);key.castShadow=true;key.shadow.mapSize.set(ultra?2048:1024,ultra?2048:1024);key.shadow.camera.left=-1.2;key.shadow.camera.right=1.2;key.shadow.camera.top=1.3;key.shadow.camera.bottom=-1.3;key.shadow.camera.near=.1;key.shadow.camera.far=14;key.shadow.bias=-.0003;key.shadow.normalBias=.015;key.target.position.set(.2,.3,3.8);scene.add(key,key.target);
+ const key=new THREE.DirectionalLight(0x9fc9dd,1.35);key.position.set(-2,6,4);key.castShadow=true;key.shadow.mapSize.set(ultra?2048:lowMem?512:1024,ultra?2048:lowMem?512:1024);key.shadow.camera.left=-1.2;key.shadow.camera.right=1.2;key.shadow.camera.top=1.3;key.shadow.camera.bottom=-1.3;key.shadow.camera.near=.1;key.shadow.camera.far=14;key.shadow.bias=-.0003;key.shadow.normalBias=.015;key.target.position.set(.2,.3,3.8);scene.add(key,key.target);
  const rim=new THREE.PointLight(0x78bdd4,15,7,2);rim.position.set(-.7,1.2,2.6);scene.add(rim);
  const fill=new THREE.PointLight(0xe9f4ff,3.2,4,2);fill.position.set(.6,.9,5);scene.add(fill);
  // Warm, low sun catching the foreground ferns (reference: yellow-green lit understorey).
@@ -42,6 +44,10 @@ async function main(){
  const [env,geode,closed,gem,fragments,motion,palette]=await Promise.all([
   ...['environment','geode-sharp-rim','matching-cap','sapphire','geode-fracture-v3'].map(n=>loader.loadAsync(rootURL+n+'.glb')),
   fetch(rootURL+'motion.json').then(r=>r.json()),fetch(rootURL+'materials.json').then(r=>r.json())]);
+ // On phones shrink every environment texture to 512px before it reaches the GPU (~210 MB -> ~55 MB).
+ if(lowMem){const seen=new Set();env.scene.traverse(o=>{for(const m of [].concat(o.material||[]))for(const k in m){const t=m[k];
+  if(!t||!t.isTexture||seen.has(t)||!t.image||!(t.image.width>512))continue;seen.add(t);
+  const c=document.createElement('canvas');c.width=c.height=512;c.getContext('2d').drawImage(t.image,0,0,512,512);t.image=c;t.needsUpdate=true;}});}
  const hero=new THREE.Group();scene.add(hero);hero.add(geode.scene,closed.scene,gem.scene);scene.add(env.scene,fragments.scene);
  const all=[env.scene,geode.scene,closed.scene,gem.scene,fragments.scene];
  for(const group of all)group.traverse(o=>{if(!o.isMesh)return;o.geometry.setAttribute('rockRestPosition',o.geometry.attributes.position.clone());o.receiveShadow=true;o.castShadow=group!==env.scene;
@@ -83,7 +89,7 @@ async function main(){
  shader.vertexShader='varying vec2 vRipple;\n'+shader.vertexShader.replace('gl_Position =', 'vRipple=position.xy;\n gl_Position =');
  shader.fragmentShader='varying vec2 vRipple;uniform float uTime,uPulse;\n'+shader.fragmentShader.replace('vec4 base = texture2DProj( tDiffuse, vUv );',`vec4 waveUv=vUv;float r=length(vRipple);waveUv.xy+=vec2(sin(r*38.-uTime*9.),cos(vRipple.x*21.+uTime*2.))*(.0008+uPulse*.003)*waveUv.w;vec4 base = texture2DProj(tDiffuse,waveUv);`);
  shader.fragmentShader=shader.fragmentShader.replace('gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );','gl_FragColor = vec4(mix(vec3(.035,.06,.055),base.rgb,.76),.66*(1.-smoothstep(1.08,1.35,length(vRipple))));');
- const water=new Reflector(new THREE.CircleGeometry(1.35,96),{color:0x355653,textureWidth:ultra?1024:512,textureHeight:ultra?1024:512,clipBias:.002,shader});water.material.transparent=true;water.material.depthWrite=false;water.rotation.x=-Math.PI/2;water.position.set(.2,-.1,4.15);water.scale.set(1.04,1.1,1);scene.add(water);
+ const water=new Reflector(new THREE.CircleGeometry(1.35,96),{color:0x355653,textureWidth:ultra?1024:lowMem?256:512,textureHeight:ultra?1024:lowMem?256:512,clipBias:.002,shader});water.material.transparent=true;water.material.depthWrite=false;water.rotation.x=-Math.PI/2;water.position.set(.2,-.1,4.15);water.scale.set(1.04,1.1,1);scene.add(water);
  // Real 3D ballistic droplets. The mesh positions follow gravity and cease at water contact.
  const N=420,WATER_Y=-.1,dropMat=new THREE.MeshPhysicalMaterial({color:0x9a805b,roughness:.075,metalness:0,ior:1.33,clearcoat:1,clearcoatRoughness:.02,envMapIntensity:1.7,transparent:true,opacity:.72});
  const dropMesh=new THREE.InstancedMesh(new THREE.SphereGeometry(1,10,8),dropMat,N);dropMesh.frustumCulled=false;scene.add(dropMesh);

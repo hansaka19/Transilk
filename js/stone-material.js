@@ -6,13 +6,15 @@ import { NOISE_GLSL } from './noise.js';
 // rind, 1 = cavity wall) and draw the real cross-section per pixel: basalt rind, a thin dark skin,
 // fine concentric agate bands and a sparkling quartz crust.
 const loader = new THREE.TextureLoader();
+// Phones get the 1k scans: two 4k textures alone are ~170 MB of GPU memory, enough for iOS Safari to kill the tab.
+const RES = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 820 ? '1k' : '4k';
 let tex, ready = Promise.resolve();
 export const stoneTexturesReady = () => ready;   // resolves once the rock textures have decoded
 function textures(renderer) {
   if (tex) return tex;
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   let n = 0, done; ready = new Promise(r => { done = r; }); const ok = () => { if (++n === 2) done(); };
-  const diff = loader.load('assets/realtime/tex/dark_rock_diff_4k.jpg', ok, undefined, ok), disp = loader.load('assets/realtime/tex/dark_rock_disp_4k.jpg', ok, undefined, ok);
+  const diff = loader.load(`assets/realtime/tex/dark_rock_diff_${RES}.jpg`, ok, undefined, ok), disp = loader.load(`assets/realtime/tex/dark_rock_disp_${RES}.jpg`, ok, undefined, ok);
   diff.colorSpace = THREE.SRGBColorSpace;
   for (const t of [diff, disp]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = aniso; }
   return (tex = { diff, disp });
