@@ -1,0 +1,327 @@
+{
+  "source": "Geode body",
+  "mirror_plane_blender_y": -3.975,
+  "method": "mirrored existing mesh, 3D Voronoi fracture",
+  "pieces": [
+    {
+      "name": "Matching fragment 00",
+      "vertices": 53,
+      "faces": 46
+    },
+    {
+      "name": "Matching fragment 01",
+      "vertices": 905,
+      "faces": 1139
+    },
+    {
+      "name": "Matching fragment 02",
+      "vertices": 2031,
+      "faces": 2820
+    },
+    {
+      "name": "Matching fragment 03",
+      "vertices": 464,
+      "faces": 566
+    },
+    {
+      "name": "Matching fragment 04",
+      "vertices": 1788,
+      "faces": 2485
+    },
+    {
+      "name": "Matching fragment 05",
+      "vertices": 3043,
+      "faces": 4737
+    },
+    {
+      "name": "Matching fragment 06",
+      "vertices": 577,
+      "faces": 725
+    },
+    {
+      "name": "Matching fragment 07",
+      "vertices": 979,
+      "faces": 1247
+    },
+    {
+      "name": "Matching fragment 08",
+      "vertices": 1958,
+      "faces": 2760
+    },
+    {
+      "name": "Matching fragment 09",
+      "vertices": 62,
+      "faces": 61
+    },
+    {
+      "name": "Matching fragment 10",
+      "vertices": 542,
+      "faces": 667
+    },
+    {
+      "name": "Matching fragment 11",
+      "vertices": 663,
+      "faces": 791
+    },
+    {
+      "name": "Matching fragment 12",
+      "vertices": 764,
+      "faces": 1017
+    },
+    {
+      "name": "Matching fragment 13",
+      "vertices": 1784,
+      "faces": 2590
+    },
+    {
+      "name": "Matching fragment 14",
+      "vertices": 2903,
+      "faces": 4651
+    },
+    {
+      "name": "Matching fragment 15",
+      "vertices": 1597,
+      "faces": 2258
+    },
+    {
+      "name": "Matching fragment 16",
+      "vertices": 1971,
+      "faces": 3005
+    },
+    {
+      "name": "Matching fragment 18",
+      "vertices": 1082,
+      "faces": 1445
+    },
+    {
+      "name": "Matching fragment 19",
+      "vertices": 2619,
+      "faces": 4174
+    },
+    {
+      "name": "Matching fragment 20",
+      "vertices": 2358,
+      "faces": 3747
+    },
+    {
+      "name": "Matching fragment 21",
+      "vertices": 275,
+      "faces": 304
+    },
+    {
+      "name": "Matching fragment 22",
+      "vertices": 915,
+      "faces": 1129
+    },
+    {
+      "name": "Matching fragment 23",
+      "vertices": 1243,
+      "faces": 1696
+    },
+    {
+      "name": "Matching fragment 24",
+      "vertices": 646,
+      "faces": 821
+    },
+    {
+      "name": "Matching fragment 25",
+      "vertices": 3601,
+      "faces": 5415
+    },
+    {
+      "name": "Matching fragment 26",
+      "vertices": 2755,
+      "faces": 4461
+    },
+    {
+      "name": "Matching fragment 27",
+      "vertices": 4846,
+      "faces": 7759
+    },
+    {
+      "name": "Matching fragment 30",
+      "vertices": 4064,
+      "faces": 6474
+    },
+    {
+      "name": "Matching fragment 31",
+      "vertices": 3644,
+      "faces": 5842
+    },
+    {
+      "name": "Matching fragment 32",
+      "vertices": 959,
+      "faces": 1324
+    },
+    {
+      "name": "Matching fragment 33",
+      "vertices": 907,
+      "faces": 1231
+    },
+    {
+      "name": "Matching fragment 34",
+      "vertices": 1739,
+      "faces": 2213
+    },
+    {
+      "name": "Matching fragment 35",
+      "vertices": 3696,
+      "faces": 5935
+    },
+    {
+      "name": "Matching fragment 36",
+      "vertices": 394,
+      "faces": 484
+    },
+    {
+      "name": "Matching fragment 37",
+      "vertices": 1646,
+      "faces": 2197
+    },
+    {
+      "name": "Matching fragment 38",
+      "vertices": 3166,
+      "faces": 4971
+    },
+    {
+      "name": "Matching fragment 39",
+      "vertices": 3764,
+      "faces": 5834
+    },
+    {
+      "name": "Matching fragment 40",
+      "vertices": 2372,
+      "faces": 3709
+    },
+    {
+      "name": "Matching fragment 41",
+      "vertices": 1099,
+      "faces": 1630
+    },
+    {
+      "name": "Matching fragment 42",
+      "vertices": 848,
+      "faces": 1194
+    },
+    {
+      "name": "Matching fragment 43",
+      "vertices": 2899,
+      "faces": 4418
+    },
+    {
+      "name": "Matching fragment 44",
+      "vertices": 4414,
+      "faces": 7566
+    },
+    {
+      "name": "Matching fragment 45",
+      "vertices": 189,
+      "faces": 201
+    },
+    {
+      "name": "Matching fragment 46",
+      "vertices": 863,
+      "faces": 1111
+    },
+    {
+      "name": "Matching fragment 47",
+      "vertices": 942,
+      "faces": 1290
+    },
+    {
+      "name": "Matching fragment 48",
+      "vertices": 314,
+      "faces": 362
+    },
+    {
+      "name": "Matching fragment 49",
+      "vertices": 799,
+      "faces": 1017
+    },
+    {
+      "name": "Matching fragment 50",
+      "vertices": 1928,
+      "faces": 2751
+    },
+    {
+      "name": "Matching fragment 51",
+      "vertices": 578,
+      "faces": 720
+    },
+    {
+      "name": "Matching fragment 52",
+      "vertices": 2251,
+      "faces": 3321
+    },
+    {
+      "name": "Matching fragment 53",
+      "vertices": 3353,
+      "faces": 5256
+    },
+    {
+      "name": "Matching fragment 54",
+      "vertices": 614,
+      "faces": 790
+    },
+    {
+      "name": "Matching fragment 55",
+      "vertices": 1550,
+      "faces": 2068
+    },
+    {
+      "name": "Matching fragment 56",
+      "vertices": 3375,
+      "faces": 5071
+    },
+    {
+      "name": "Matching fragment 58",
+      "vertices": 355,
+      "faces": 402
+    },
+    {
+      "name": "Matching fragment 59",
+      "vertices": 492,
+      "faces": 596
+    },
+    {
+      "name": "Matching fragment 61",
+      "vertices": 143,
+      "faces": 138
+    },
+    {
+      "name": "Matching fragment 62",
+      "vertices": 603,
+      "faces": 751
+    },
+    {
+      "name": "Matching fragment 63",
+      "vertices": 323,
+      "faces": 385
+    },
+    {
+      "name": "Matching fragment 64",
+      "vertices": 467,
+      "faces": 561
+    },
+    {
+      "name": "Matching fragment 65",
+      "vertices": 775,
+      "faces": 939
+    },
+    {
+      "name": "Matching fragment 66",
+      "vertices": 143,
+      "faces": 142
+    },
+    {
+      "name": "Matching fragment 67",
+      "vertices": 598,
+      "faces": 718
+    },
+    {
+      "name": "Matching fragment 68",
+      "vertices": 1185,
+      "faces": 1570
+    }
+  ]
+}

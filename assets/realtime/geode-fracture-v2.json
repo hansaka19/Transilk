@@ -1,0 +1,270 @@
+{
+ "source": "Geode body (mirrored front half)",
+ "method": "few large chunks + chips, tilted Voronoi cuts, roughened depth-coloured break faces",
+ "pieces": [
+  {
+   "name": "Geode fragment 00",
+   "faces": 7837
+  },
+  {
+   "name": "Geode fragment 01",
+   "faces": 6197
+  },
+  {
+   "name": "Geode fragment 02",
+   "faces": 2519
+  },
+  {
+   "name": "Geode fragment 03",
+   "faces": 6063
+  },
+  {
+   "name": "Geode fragment 04",
+   "faces": 2624
+  },
+  {
+   "name": "Geode fragment 05",
+   "faces": 11781
+  },
+  {
+   "name": "Geode fragment 06",
+   "faces": 11523
+  },
+  {
+   "name": "Geode fragment 07",
+   "faces": 6168
+  },
+  {
+   "name": "Geode fragment 08",
+   "faces": 5925
+  },
+  {
+   "name": "Geode fragment 09",
+   "faces": 410
+  },
+  {
+   "name": "Geode fragment 10",
+   "faces": 7410
+  },
+  {
+   "name": "Geode fragment 11",
+   "faces": 6849
+  },
+  {
+   "name": "Geode fragment 12",
+   "faces": 4542
+  },
+  {
+   "name": "Geode fragment 13",
+   "faces": 3043
+  },
+  {
+   "name": "Geode fragment 14",
+   "faces": 2651
+  },
+  {
+   "name": "Geode fragment 15",
+   "faces": 8027
+  },
+  {
+   "name": "Geode fragment 16",
+   "faces": 184
+  },
+  {
+   "name": "Geode fragment 17",
+   "faces": 1912
+  },
+  {
+   "name": "Geode fragment 18",
+   "faces": 4189
+  },
+  {
+   "name": "Geode fragment 19",
+   "faces": 4312
+  },
+  {
+   "name": "Geode fragment 20",
+   "faces": 240
+  },
+  {
+   "name": "Geode fragment 21",
+   "faces": 2326
+  },
+  {
+   "name": "Geode fragment 22",
+   "faces": 3256
+  },
+  {
+   "name": "Geode fragment 23",
+   "faces": 477
+  },
+  {
+   "name": "Geode fragment 25",
+   "faces": 1625
+  },
+  {
+   "name": "Geode fragment 26",
+   "faces": 1315
+  },
+  {
+   "name": "Geode fragment 27",
+   "faces": 1397
+  },
+  {
+   "name": "Geode fragment 28",
+   "faces": 954
+  },
+  {
+   "name": "Geode fragment 29",
+   "faces": 991
+  },
+  {
+   "name": "Geode fragment 31",
+   "faces": 1296
+  },
+  {
+   "name": "Geode fragment 32",
+   "faces": 168
+  },
+  {
+   "name": "Geode fragment 34",
+   "faces": 4502
+  },
+  {
+   "name": "Geode fragment 35",
+   "faces": 684
+  },
+  {
+   "name": "Geode fragment 36",
+   "faces": 1040
+  },
+  {
+   "name": "Geode fragment 37",
+   "faces": 2519
+  },
+  {
+   "name": "Geode fragment 38",
+   "faces": 7785
+  },
+  {
+   "name": "Geode fragment 39",
+   "faces": 5129
+  },
+  {
+   "name": "Geode fragment 40",
+   "faces": 762
+  },
+  {
+   "name": "Geode fragment 41",
+   "faces": 366
+  },
+  {
+   "name": "Geode fragment 42",
+   "faces": 411
+  },
+  {
+   "name": "Geode fragment 45",
+   "faces": 285
+  },
+  {
+   "name": "Geode fragment 46",
+   "faces": 930
+  },
+  {
+   "name": "Geode fragment 47",
+   "faces": 13085
+  },
+  {
+   "name": "Geode fragment 48",
+   "faces": 1281
+  },
+  {
+   "name": "Geode fragment 49",
+   "faces": 358
+  },
+  {
+   "name": "Geode fragment 52",
+   "faces": 1993
+  },
+  {
+   "name": "Geode fragment 53",
+   "faces": 1647
+  },
+  {
+   "name": "Geode fragment 54",
+   "faces": 826
+  },
+  {
+   "name": "Geode fragment 55",
+   "faces": 1854
+  },
+  {
+   "name": "Geode fragment 56",
+   "faces": 5716
+  },
+  {
+   "name": "Geode fragment 57",
+   "faces": 1469
+  },
+  {
+   "name": "Geode fragment 58",
+   "faces": 989
+  },
+  {
+   "name": "Geode fragment 59",
+   "faces": 661
+  },
+  {
+   "name": "Geode fragment 61",
+   "faces": 5579
+  },
+  {
+   "name": "Geode fragment 62",
+   "faces": 9226
+  },
+  {
+   "name": "Geode fragment 63",
+   "faces": 870
+  },
+  {
+   "name": "Geode fragment 64",
+   "faces": 1557
+  },
+  {
+   "name": "Geode fragment 65",
+   "faces": 1635
+  },
+  {
+   "name": "Geode fragment 66",
+   "faces": 2252
+  },
+  {
+   "name": "Geode fragment 67",
+   "faces": 1665
+  },
+  {
+   "name": "Geode fragment 68",
+   "faces": 1056
+  },
+  {
+   "name": "Geode fragment 69",
+   "faces": 2852
+  },
+  {
+   "name": "Geode fragment 70",
+   "faces": 857
+  },
+  {
+   "name": "Geode fragment 71",
+   "faces": 319
+  },
+  {
+   "name": "Geode fragment 72",
+   "faces": 2234
+  },
+  {
+   "name": "Geode fragment 73",
+   "faces": 2226
+  }
+ ]
+}
