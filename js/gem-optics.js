@@ -28,7 +28,7 @@ export function installGemOptics(material, group) {
   const uniforms = {
     uFacetPlanes:{value:hull},uFacetCount:{value:planes.length},
     uGemCenter:{value:center},uGemRadius:{value:radius},
-    uGemInverse:{value:new THREE.Matrix4()},uGemWorld:{value:new THREE.Matrix4()},
+    uGemIncidentLight:{value:1},uGemAbsorptionScale:{value:1},uGemInverse:{value:new THREE.Matrix4()},uGemWorld:{value:new THREE.Matrix4()},
   };
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms,uniforms);
@@ -37,7 +37,7 @@ export function installGemOptics(material, group) {
     shader.fragmentShader=shader.fragmentShader.replace('#include <lights_physical_pars_fragment>',`#include <lights_physical_pars_fragment>
       varying vec3 vGemLocal;
       uniform vec4 uFacetPlanes[96]; uniform int uFacetCount;
-      uniform vec3 uGemCenter; uniform float uGemRadius;
+      uniform vec3 uGemCenter; uniform float uGemRadius; uniform float uGemAbsorptionScale; uniform float uGemIncidentLight;
       uniform mat4 uGemInverse,uGemWorld;
       float facetExit(vec3 origin,vec3 dir,out vec3 hitNormal){
         float best=1000.;hitNormal=vec3(0,0,1);
@@ -63,7 +63,7 @@ export function installGemOptics(material, group) {
         vec3 absorption=vec3(2.7,1.05,.07);
         for(int bounce=0;bounce<5;bounce++){
           vec3 n;float t=facetExit(origin,dir,n);if(t>100.)break;
-          energy*=exp(-absorption[channel]*t);
+          energy*=exp(-absorption[channel]*t*uGemAbsorptionScale);
           vec3 hit=origin+dir*t;
           vec3 outgoing=refract(dir,-n,ior);
           if(dot(outgoing,outgoing)>.01){
@@ -86,10 +86,10 @@ export function installGemOptics(material, group) {
         optical.g=gemChannel(p,incident,n,1.764,1);
         optical.b=gemChannel(p,incident,n,1.772,2);
         float entryF=.076+.924*pow(1.-abs(dot(n,incident)),5.);
-        totalEmissiveRadiance+=optical*(1.-entryF)*.65; }
+        totalEmissiveRadiance+=optical*(1.-entryF)*.65*uGemIncidentLight; }
       `);
   };
   material.customProgramCacheKey=()=> 'transilk-physical-facet-ray-v1';
   material.needsUpdate=true;
-  return {planeCount:planes.length,update(){mesh.updateWorldMatrix(true,false);uniforms.uGemWorld.value.copy(mesh.matrixWorld);uniforms.uGemInverse.value.copy(mesh.matrixWorld).invert();}};
+  return {planeCount:planes.length,update(absorptionScale=1,incidentLight=1){uniforms.uGemIncidentLight.value=incidentLight;uniforms.uGemAbsorptionScale.value=absorptionScale;mesh.updateWorldMatrix(true,false);uniforms.uGemWorld.value.copy(mesh.matrixWorld);uniforms.uGemInverse.value.copy(mesh.matrixWorld).invert();}};
 }

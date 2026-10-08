@@ -44,7 +44,21 @@
     PLACEHOLDER COPY: every text marked data-copy is placeholder until the real transilk
     text is supplied. Layout follows the approved reference; nothing here is final wording.
   -->
+  <main class="scroll-story">
   <section class="hero" aria-label="transilk hero">
+    <div class="product-showcase" aria-hidden="true">
+      <span class="product-word" aria-hidden="true">SAPPHIRE</span>
+      <span class="product-shadow" aria-hidden="true"></span>
+      <span class="product-rule" aria-hidden="true"></span>
+    </div>
+    <div class="product-controls" inert>
+      <span class="product-brand">transilk</span>
+      <span class="product-top-label mono">FINE GEMSTONES</span>
+      <span class="product-side mono">ROUND BRILLIANT CUT</span>
+      <p class="product-description" data-copy>Royal blue.<br>From rough stone<br>to brilliant gem.</p>
+      <button class="product-return" type="button">↑ BACK TO THE FOREST</button>
+      <span class="product-name">ROYAL BLUE SAPPHIRE</span>
+    </div>
     <div class="hero__stage" aria-hidden="true">
       <img class="hero__poster" data-src="assets/poster.jpg" alt="">
       <canvas class="hero__canvas" aria-label="Interactive 3D geode scene"></canvas>
@@ -99,7 +113,9 @@
       <p class="bigword" data-copy aria-hidden="true">TRANSILK</p>
     </div>
     <button class="scene-replay" hidden type="button" aria-label="Replay the geode animation">Replay intro ↻</button>
+    <span class="scroll-cue mono">SCROLL TO DISCOVER ↓</span>
   </section>
+  </main>
 
   <script type="module" src="js/realtime-hero.js"></script>
 </body>
