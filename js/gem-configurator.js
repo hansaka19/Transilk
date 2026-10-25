@@ -275,6 +275,24 @@ export async function createGemConfigurator({ scene, camera, gem, mesh, material
   mesh.geometry = originalGeo; mesh.material = originalMat;
   { const proxyScene = new THREE.Scene(); for (const c of [cuts.round, cuts.heart].filter(Boolean)) proxyScene.add(new THREE.Mesh(c.geometry, c.material)); try { await renderer.compileAsync(proxyScene, camera, scene); } catch { } }
 
+  // CF01: a short visual cross-dissolve of different cut silhouettes inside the dim shaft.
+  // This bridge is a separate clone: the hero material/opacity and existing optics closures stay
+  // intact. It is outside the sand worldGroup and bounds/autofit always use `mesh` alone.
+  const bridgeMat = originalMat.clone(), bridgeMesh = new THREE.Mesh(originalGeo, bridgeMat);
+  const bridgeOptics = installGemOptics(bridgeMat, bridgeMesh);
+  bridgeMesh.name = 'Cut handoff | outgoing round'; bridgeMesh.visible = false;
+  bridgeMat.transparent = true; bridgeMat.depthWrite = false;
+  mesh.parent.add(bridgeMesh);
+  // Warm both transparent variants under the loader, rather than compiling on the first scroll.
+  { const proxyScene=new THREE.Scene(), m=cuts.emerald.material;
+    proxyScene.add(new THREE.Mesh(originalGeo,bridgeMat));m.transparent=true;m.depthWrite=false;
+    proxyScene.add(new THREE.Mesh(cuts.emerald.geometry,m));
+    try{await renderer.compileAsync(proxyScene,camera,scene);}catch{}
+    m.transparent=false;m.depthWrite=true;
+  }
+  const originalRenderOrder = mesh.renderOrder;
+  let handoffMaterial = null;
+
   const turn = new THREE.Quaternion(), euler = new THREE.Euler(), point = new THREE.Vector3();
 
   function paintAll() {
@@ -321,7 +339,11 @@ export async function createGemConfigurator({ scene, camera, gem, mesh, material
       // w blends the hero sapphire into the configured gem while it is deep underground and dim (S03),
       // so nothing pops at the end of the scroll or on the way back (CF01).
       const w = THREE.MathUtils.smoothstep(progress, .4, .6), opticalBlend = THREE.MathUtils.smoothstep(progress, .6, .9), ready = progress > .999, arrival = THREE.MathUtils.smoothstep(progress, .93, 1);
-      const cut = progress >= .5 ? (cuts[state.shape] || cuts.round) : hero;
+      const differentCut = state.shape !== 'round' && !!cuts[state.shape];
+      const handoff = differentCut && progress >= .46 && progress < .54;
+      const cut = progress >= (differentCut ? .46 : .5) ? (cuts[state.shape] || cuts.round) : hero;
+      if(handoffMaterial){handoffMaterial.opacity=1;handoffMaterial.transparent=false;handoffMaterial.depthWrite=true;handoffMaterial=null;}
+      bridgeMesh.visible=handoff;mesh.renderOrder=originalRenderOrder;
       mesh.geometry = cut.geometry; mesh.material = cut.material;
       const mat = mesh.material, v = variety();
       // same surface as the hero sapphire (the scroll story softens its specular/clearcoat for the studio)
@@ -332,9 +354,23 @@ export async function createGemConfigurator({ scene, camera, gem, mesh, material
       // hero reflections are scaled by the scene's environmentIntensity; a material envMap is not, so apply it here
       if (ready) envEnd = scene.environmentIntensity || envEnd;
       mat.envMapIntensity = mat === originalMat ? baseEnv * (state.light ? .9 : .28) * Math.min(1, scene.environmentIntensity / envEnd) : THREE.MathUtils.lerp(scene.environmentIntensity, baseEnv * (state.light ? .10 : .04) * scene.environmentIntensity, opticalBlend);   // no jump at the p=.5 swap (B1)
-      mat.envMapRotation.set(0, 0, -state.angle * Math.PI / 180);
-      cut.optics.configure(w > .5 ? hue().abs : [2.7, 1.05, .07], w > .5 ? v.ior : 1.764);
-      cut.optics.update(THREE.MathUtils.lerp(1 + progress * .7, hue().colourless ? .3 : .2 + state.colour * 1.25, w), THREE.MathUtils.lerp(lv, (state.light ? 1 : .22) * lv, w));
+      mat.envMapRotation.set(0, 0, -THREE.MathUtils.lerp(35,state.angle,opticalBlend) * Math.PI / 180);
+      // Preserve the outgoing optical state at p=.5; introduce variety and showroom optics only
+      // after the underground handoff. This is continuous in both scroll directions.
+      const opticalWeight = opticalBlend;
+      cut.optics.configure([2.7,1.05,.07].map((a,i)=>THREE.MathUtils.lerp(a,hue().abs[i],opticalWeight)), THREE.MathUtils.lerp(1.764,v.ior,opticalWeight));
+      const absorptionScale = THREE.MathUtils.lerp(1 + progress * .7, hue().colourless ? .3 : .2 + state.colour * 1.25, opticalWeight);
+      const incidentLight = THREE.MathUtils.lerp(lv, (state.light ? 1 : .55) * lv, opticalWeight);
+      if(handoff){
+        const blend=THREE.MathUtils.smoothstep(progress,.46,.54);
+        mat.transparent=true;mat.depthWrite=false;mat.opacity=blend;handoffMaterial=mat;
+        mesh.renderOrder=originalRenderOrder+1;bridgeMesh.renderOrder=originalRenderOrder+2;
+        bridgeMat.opacity=1-blend;bridgeMat.color.copy(mat.color);bridgeMat.roughness=originalMat.roughness;
+        bridgeMat.specularIntensity=originalMat.specularIntensity;bridgeMat.clearcoat=originalMat.clearcoat;
+        bridgeMat.envMapRotation.copy(mat.envMapRotation);
+        bridgeMesh.position.copy(mesh.position);bridgeMesh.quaternion.copy(mesh.quaternion);bridgeMesh.scale.copy(mesh.scale);
+      }
+
       // 360° turn, around the gem's own centre (the scroll pivot is the gem centre)
       turn.setFromEuler(euler.set(state.pitch, state.yaw, 0));
       gem.parent.quaternion.multiply(identity.identity().slerp(turn, w));
@@ -342,12 +378,15 @@ export async function createGemConfigurator({ scene, camera, gem, mesh, material
       const now=performance.now(),dt=Math.min(.1,(now-lastTime)/1000);lastTime=now;sizeNow += (sizeTarget-sizeNow)*(1-Math.exp(-dt*8));
       fitNow += (fitTarget - fitNow) * (1 - Math.exp(-dt * 10));
       gem.parent.scale.multiplyScalar(THREE.MathUtils.lerp(1, sizeNow * fitNow, w));
-      cut.optics.setBubbles?.(w > .5 && state.inside === 'bubbles');
+      cut.optics.setBubbles?.(opticalBlend > .5 && state.inside === 'bubbles');
       active = ready;
       // rings: centred on the projected gem and sized from its on-screen radius
       gem.parent.updateMatrixWorld(true); camera.updateMatrixWorld();   // camera was just re-aimed by the scroll story
       if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
       sphere.copy(mesh.geometry.boundingSphere).applyMatrix4(mesh.matrixWorld);
+      // Trace against this frame's transform, after the customer rotation and fitted scale.
+      cut.optics.update(absorptionScale, incidentLight);
+      if(handoff){bridgeOptics.configure([2.7,1.05,.07],1.764);bridgeOptics.update(1+progress*.7,lv);}
       camRight.setFromMatrixColumn(camera.matrixWorld, 0);
       const lampAngle = (state.angle - 90) * Math.PI / 180;
       lampOffset.set(Math.cos(lampAngle)*3.2, -Math.sin(lampAngle)*3.2, 3.0).applyQuaternion(camera.quaternion).multiplyScalar(sphere.radius).add(sphere.center);
@@ -380,7 +419,7 @@ export async function createGemConfigurator({ scene, camera, gem, mesh, material
       orbit.style.left = `${cx}px`; orbit.style.top = `${cy}px`; orbit.style.width = orbit.style.height = `${size.toFixed(1)}px`;
       orbit.style.setProperty('--k', (size / 420).toFixed(3)); knobHits(size);
       ui.classList.toggle('is-ready', ready);
-      if ((frame++ & 15) === 0) window.transilkConfig = { ...state, active, ringPx: Math.round(size), fit: +fitNow.toFixed(3), gemPx: Math.round(rpx * 2), cartCount: cart.reduce((n, x) => n + x.quantity, 0), cutVertices: mesh.geometry.attributes.position.count, envAngle: Math.round(state.angle),sizeScale:sizeNow,bubbles:state.inside==='bubbles'?cut.optics.bubbleCount:0 };
+      if ((frame++ & 15) === 0) window.transilkConfig = { ...state, active, ringPx: Math.round(size), fit: +fitNow.toFixed(3), gemPx: Math.round(rpx * 2), cartCount: cart.reduce((n, x) => n + x.quantity, 0), cutVertices: mesh.geometry.attributes.position.count, envAngle: Math.round(state.angle),sizeScale:sizeNow,optics:cut.optics.diagnostics?.(),bubbles:state.inside==='bubbles'?cut.optics.bubbleCount:0 };
     },
   };
 }

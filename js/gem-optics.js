@@ -131,6 +131,7 @@ export function installGemOptics(material, group, hullGeometry = null, jeweller 
       // and gemmological B–G dispersion. These are representative species values, not certificates.
       shader.fragmentShader=shader.fragmentShader.replace('float facetExit(',`
         uniform float uShowroom,uDispersion,uLampRadius,uLampPower;uniform vec3 uLampPosition;
+        float gemRayCone,gemPixelFootprint;
         float spectralIOR(float wavelength){float B=uDispersion/(1./(.4308*.4308)-1./(.6867*.6867));return uIOR+B*(1./(wavelength*wavelength)-1./(.5893*.5893));}
         float dielectricF(float cosine,float ni,float nt){
           float st2=(ni*ni)/(nt*nt)*(1.-cosine*cosine);if(st2>=1.)return 1.;
@@ -143,19 +144,34 @@ export function installGemOptics(material, group, hullGeometry = null, jeweller 
           vec3 o=(uGemWorld*vec4(p*uGemRadius+uGemCenter,1.)).xyz;
           vec3 ray=normalize(mat3(uGemWorld)*d),toLight=uLampPosition-o;
           float along=dot(toLight,ray),distance2=dot(toLight,toLight);
-          float angular=dot(normalize(toLight),ray),edge=sqrt(max(0.,1.-uLampRadius*uLampRadius/max(distance2,.0001)));
-          float aa=max(fwidth(angular),.000015);
-          return along>0.?uLampPower*smoothstep(edge-aa,edge+aa,angular):0.;
+          float sourceArea=uLampRadius*uLampRadius/max(distance2,.0001);
+          float footprintArea=sourceArea+gemRayCone*gemRayCone;
+          float angular=dot(normalize(toLight),ray),edge=sqrt(max(0.,1.-footprintArea));
+          // Stable source-edge integration. Derivatives inside divergent multi-bounce paths
+          // are undefined and create coloured streaks along unrelated facet triangles.
+          float aa=.00006;
+          return along>0.?uLampPower*(sourceArea/max(footprintArea,.000001))*smoothstep(edge-aa,edge+aa,angular):0.;
         }
         float facetExit(
       `)
-      .replace('return textureCubeUV(envMap,envMapRotation*worldDir,.015).rgb;',`vec3 env=textureCubeUV(envMap,envMapRotation*worldDir,.015).rgb;
+      .replace('return textureCubeUV(envMap,envMapRotation*worldDir,.015).rgb;',`vec3 env=textureCubeUV(envMap,envMapRotation*worldDir,mix(.015,min(.55,sqrt(gemRayCone)),uShowroom)).rgb;
         vec3 d=envMapRotation*worldDir;
         // Distant narrow, graded jeweller strips over a dim shared RoomEnvironment fill.
-        float strips=3.*exp(-pow((d.x-.42)/.045,2.)-pow((d.y-.18)/.65,4.))*smoothstep(0.,.3,d.z)
-          +2.*exp(-pow((d.x+.55)/.035,2.)-pow((d.y+.1)/.55,4.))*smoothstep(0.,.3,-d.z)
-          +1.4*exp(-pow((d.y-.72)/.035,2.)-pow(d.x/.6,4.));
-        return mix(env,env*.12+vec3(.035+strips),uShowroom);`)
+        float w1=sqrt(.045*.045+gemRayCone*gemRayCone),w2=sqrt(.035*.035+gemRayCone*gemRayCone);
+        float strips=3.*(.045/w1)*exp(-pow(abs((d.x-.42)/w1),2.)-pow(abs((d.y-.18)/.65),4.))*smoothstep(0.,.3,d.z)
+          +2.*(.035/w2)*exp(-pow(abs((d.x+.55)/w2),2.)-pow(abs((d.y+.1)/.55),4.))*smoothstep(0.,.3,-d.z)
+          +1.4*(.035/w2)*exp(-pow(abs((d.y-.72)/w2),2.)-pow(abs(d.x/.6),4.));
+        return mix(env,env*.30+vec3(.055+strips*step(.001,uLampPower)),uShowroom);`)
+      .replace('vec3 dir=refract(incident,normal,1./ior);','gemRayCone=0.;vec3 dir=refract(incident,normal,1./ior);')
+      .replace('if(tb<t){',`if(tb<t){
+            // Ray-footprint filtering for highly curved gas interfaces. Integrate unresolved
+            // source detail instead of producing isolated RGB pixels. Bubble geometry is unchanged.
+            gemRayCone=max(gemRayCone,min(.24,gemPixelFootprint/max(sphere.w,.001))*uShowroom);`)
+      .replace('vec3 optical;', 'vec3 pixelX=dFdx(p),pixelY=dFdy(p);gemPixelFootprint=max(length(pixelX),length(pixelY));vec3 optical;')
+      // A curved inclusion can trap a ray beyond the finite bounce budget. Integrate the
+      // unresolved remainder against the dim diffuse fill rather than dropping its energy to
+      // black independently in each colour channel (which creates RGB pinprick noise).
+      .replace('return result;', 'if(gemRayCone>0.)result+=energy*.18*uShowroom;return result;')
       .replace('bounce<5','bounce<8')
       .replace('vec3 n;float t=facetExit', 'if(bounce>=5&&uShowroom<.0001)break;\n          vec3 n;float t=facetExit')
       .replace('result+=energy*(1.-fresnel)*gemEnvironment(outgoing)[channel];', `fresnel=mix(fresnel,dielectricF(abs(dot(dir,n)),ior,1.),uShowroom);
@@ -163,11 +179,11 @@ export function installGemOptics(material, group, hullGeometry = null, jeweller 
       .replace('uIOR-.006,0','mix(uIOR-.006,spectralIOR(.6867),uShowroom),0')
       .replace('uIOR,1','mix(uIOR,spectralIOR(.5893),uShowroom),1')
       .replace('uIOR+.008,2','mix(uIOR+.008,spectralIOR(.4308),uShowroom),2')
-      .replace('totalEmissiveRadiance+=optical*(1.-entryF)*.65*uGemIncidentLight;',`entryF=mix(entryF,dielectricF(abs(dot(n,incident)),1.,uIOR),uShowroom);
+      .replace('totalEmissiveRadiance+=optical*(1.-entryF)*.65*uGemIncidentLight;',`gemRayCone=0.;entryF=mix(entryF,dielectricF(abs(dot(n,incident)),1.,uIOR),uShowroom);
         totalEmissiveRadiance+=(optical*(1.-entryF)*.65+vec3(lampRadiance(p,reflect(incident,n))*entryF*uShowroom))*uGemIncidentLight;`);
     }
   };
   material.customProgramCacheKey=()=> jeweller?'transilk-jeweller-ray-CF11-v1':'transilk-physical-facet-ray-v4';
   material.needsUpdate=true;
-  return {setJeweller(blend,dispersion,position,radius,power){uniforms.uShowroom.value=blend;uniforms.uDispersion.value=dispersion;uniforms.uLampPosition.value.copy(position);uniforms.uLampRadius.value=radius;uniforms.uLampPower.value=power;},setBubbles(on){uniforms.uBubbleCount.value=on?bubbleCount:0;},bubbleCount,configure(absorption,ior){uniforms.uAbsorption.value.fromArray(absorption);uniforms.uIOR.value=ior;},planeCount:planes.length,update(absorptionScale=1,incidentLight=1){uniforms.uGemIncidentLight.value=incidentLight;uniforms.uGemAbsorptionScale.value=absorptionScale;mesh.updateWorldMatrix(true,false);uniforms.uGemWorld.value.copy(mesh.matrixWorld);uniforms.uGemInverse.value.copy(mesh.matrixWorld).invert();}};
+  return {diagnostics(){return {showroom:uniforms.uShowroom.value,ior:uniforms.uIOR.value,dispersion:uniforms.uDispersion.value,sourcePower:uniforms.uLampPower.value,planes:planes.length};},setJeweller(blend,dispersion,position,radius,power){uniforms.uShowroom.value=blend;uniforms.uDispersion.value=dispersion;uniforms.uLampPosition.value.copy(position);uniforms.uLampRadius.value=radius;uniforms.uLampPower.value=power;},setBubbles(on){uniforms.uBubbleCount.value=on?bubbleCount:0;},bubbleCount,configure(absorption,ior){uniforms.uAbsorption.value.fromArray(absorption);uniforms.uIOR.value=ior;},planeCount:planes.length,update(absorptionScale=1,incidentLight=1){uniforms.uGemIncidentLight.value=incidentLight;uniforms.uGemAbsorptionScale.value=absorptionScale;mesh.updateWorldMatrix(true,false);uniforms.uGemWorld.value.copy(mesh.matrixWorld);uniforms.uGemInverse.value.copy(mesh.matrixWorld).invert();}};
 }
