@@ -25,9 +25,10 @@ export function createScrollShowcase({renderer,scene,camera,hero,gem,geode,close
   if(reduced){target=progress=t;return;}
   target=t;lastStart=performance.now();speed=speedTarget=1;
  }
+ const inConfig=e=>!!(e.target&&e.target.closest&&e.target.closest('.gem-config .cfg-col,.gem-config .cfg-flank,.gem-orbit,.cart-button,.config-cart'));
  const atStage=()=>Math.abs(scrollY-story.offsetTop)<4;
  addEventListener('wheel',e=>{
-  if(!atStage())return;
+  if(!atStage()||inConfig(e))return;
   const now=performance.now(),dir=Math.sign(e.deltaY),gap=now-lastWheel;lastWheel=now;
   // a trackpad flick / wheel burst is ONE gesture: a new one needs a 220 ms pause or a real direction change
   const fresh=gap>220||(dir!==wheelDir&&Math.abs(e.deltaY)>10);if(dir)wheelDir=dir;
@@ -39,13 +40,13 @@ export function createScrollShowcase({renderer,scene,camera,hero,gem,geode,close
  },{passive:false});
  let touchY=null,touchFired=false,touchMoveLast=null,touchMoveT=null;
  addEventListener('touchstart',e=>{touchY=e.touches[0].clientY;touchFired=false;touchMoveLast=null;touchMoveT=null;},{passive:true});
- addEventListener('touchmove',e=>{if(touchY===null||!atStage())return;const dy=touchY-e.touches[0].clientY;
+ addEventListener('touchmove',e=>{if(touchY===null||!atStage()||inConfig(e))return;const dy=touchY-e.touches[0].clientY;
   const atEnd=progress>=1&&target===1;if(dy>0&&atEnd&&!locked())return;
   e.preventDefault();if(!touchFired&&Math.abs(dy)>30){touchFired=true;play(Math.sign(dy));}
   if(touchFired&&locked()){const now=performance.now(),v=Math.abs(dy-(touchMoveLast??0))/Math.max(8,now-(touchMoveT??now-16));touchMoveLast=dy;touchMoveT=now;push(Math.min(2.3,v*1.6));}},{passive:false});
  addEventListener('touchend',()=>{touchY=null;},{passive:true});
  addEventListener('keydown',e=>{
-  if(e.target.closest&&e.target.closest('a,button,input,textarea,select,[contenteditable]'))return;
+  if(inConfig(e)||e.target.closest&&e.target.closest('a,button,input,textarea,select,[role=slider],[role=listbox],[contenteditable]'))return;
   const down=['ArrowDown','PageDown',' ','Spacebar'].includes(e.key),up=['ArrowUp','PageUp'].includes(e.key);
   if((!down&&!up)||!atStage())return;
   if(down&&progress>=1&&target===1)return;
@@ -55,6 +56,7 @@ export function createScrollShowcase({renderer,scene,camera,hero,gem,geode,close
  for(const link of document.querySelectorAll('a[href="#collection"],a[href="#sapphires"]'))link.addEventListener('click',e=>{e.preventDefault();window.scrollTo({top:story.offsetTop,behavior:'instant'});play(1);});
  const playCurve=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;   // cinematic ease-in-out over the whole timeline
  let linear=progress;
+ window.__storyQA=v=>{linear=target=v;};   // QA hook (screenshots at an exact story position)
  // Preserve the same sapphire and its optical shader throughout both shots.
  hero.updateMatrixWorld(true);const gemCenter=new THREE.Box3().setFromObject(gem).getCenter(new THREE.Vector3());
  const pivot=new THREE.Group();pivot.name='Sapphire scroll presentation';scene.add(pivot);pivot.add(gem);gem.position.sub(gemCenter);
@@ -210,7 +212,7 @@ export function createScrollShowcase({renderer,scene,camera,hero,gem,geode,close
   document.body.classList.toggle('in-showcase',p>.05);
 
   hero.updateMatrixWorld(true);source.copy(hero.matrixWorld).multiply(gemOffset).decompose(sourceP,sourceQ,sourceScale);
-  goal.set(.19,-2.95,4.8);const scale=innerWidth<820?2.05:4.6;
+  goal.set(.19,-2.95,4.8);const scale=innerWidth<820?1.15:2.4;   // CF05: a bit smaller (2.4 = 52% of the pushed 4.6, 83% of Codex's 2.9)
   pivot.position.copy(sourceP);pivot.position.z+=.55*ease(.0,.12,p)*(1-travel);pivot.position.lerp(goal,travel);pivot.quaternion.copy(sourceQ).slerp(turn,travel);pivot.scale.copy(sourceScale).multiplyScalar(1+(scale-1)*travel);
 
   if(p>0&&previous===0&&!reduced)captureSand();
@@ -230,7 +232,7 @@ export function createScrollShowcase({renderer,scene,camera,hero,gem,geode,close
   camera.getWorldDirection(dir);aim.copy(camera.position).addScaledVector(dir,3);
   camGoal.set(.19,-2.7,innerWidth<820?6.5:6.8);
   const sink=ease(.04,.9,p);camera.position.lerp(camGoal,sink);
-  aim.lerp(pivot.position,ease(0,.3,p));camera.lookAt(aim);
+  aim.lerp(pivot.position,ease(0,.3,p));if(innerWidth<820)aim.y-=.32*ease(.8,1,p);camera.lookAt(aim);
 
   // light curve: 1 in the forest, ~0.22 deep underground (30-55 %), back to full in the studio
   const dark=ease(.1,.32,p)*(1-ease(.6,.92,p)),level=1-.78*dark;

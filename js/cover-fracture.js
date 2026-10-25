@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // and each fragment inherits the slab's real velocity at that point, bounces, skids with Coulomb
 // friction, collides with its neighbours and settles onto its nearest stable face.
 // Everything is precomputed at a fixed 240 Hz step, so playback is identical at any frame rate.
-export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFrame = 82, groundY = -.095 } = {}) {
+export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFrame = 82, groundY = -.095, groundAt = () => groundY, waterY = -.1 } = {}) {
   const G = 9.81, dt = 1 / 240, fps = 24, SIM_SECONDS = 4.5, steps = Math.ceil(SIM_SECONDS / dt);
   const bodies = [], assembly = new THREE.Box3(), v = new THREE.Vector3();
   const rng = i => THREE.MathUtils.euclideanModulo(Math.sin(i * 91.73 + 8.19) * 43758.5453, 1);
@@ -19,10 +19,12 @@ export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFr
     const bounds = new THREE.Box3();
     for (const mesh of meshes) { const geo = mesh.geometry.clone().applyMatrix4(matrix); geo.computeBoundingBox(); bounds.union(geo.boundingBox); mesh.geometry = geo; }
     const center = bounds.getCenter(new THREE.Vector3()); assembly.union(bounds);
-    const support = [], breakDir = new THREE.Vector3();
+    const faces = [], support = [], breakDir = new THREE.Vector3();
     for (const mesh of meshes) {
       const geo = mesh.geometry; geo.translate(-center.x, -center.y, -center.z);
       if (mesh !== node) { mesh.position.set(0, 0, 0); mesh.quaternion.identity(); mesh.scale.setScalar(1); }
+      const fp=geo.attributes.position,ix=geo.index,fa=new THREE.Vector3(),fb=new THREE.Vector3(),fc=new THREE.Vector3();
+      for(let k=0;k<(ix?ix.count:fp.count);k+=3){fa.fromBufferAttribute(fp,ix?ix.getX(k):k);fb.fromBufferAttribute(fp,ix?ix.getX(k+1):k+1);fc.fromBufferAttribute(fp,ix?ix.getX(k+2):k+2);const n=fb.sub(fa).cross(fc.sub(fa)),area=n.length();if(area>1e-7)faces.push({n:n.normalize().clone(),area});}
       const p = geo.attributes.position, step = Math.max(1, Math.floor(p.count / 60));
       for (let i = 0; i < p.count; i += step) support.push(new THREE.Vector3().fromBufferAttribute(p, i));
       for (let axis = 0; axis < 3; axis++) for (const sign of [-1, 1]) {
@@ -41,7 +43,8 @@ export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFr
     node.position.copy(center); node.quaternion.identity(); node.scale.setScalar(1);
     const size = bounds.getSize(new THREE.Vector3());
     let r = 0; for (const s of support) r = Math.max(r, Math.hypot(s.x, s.z));
-    bodies.push({ mesh: node, center, support, breakDir, radius: Math.min(r, size.length() * .38),
+    faces.sort((a,b)=>b.area-a.area);
+    bodies.push({ mesh: node, center, support, faces:faces.slice(0,24), breakDir, radius: Math.min(r, size.length() * .38),
       mass: Math.max(1e-4, size.x * size.y * size.z), extent: size.length(), states: [] });
   }
 
@@ -82,13 +85,13 @@ export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFr
   function stableFace(s) {                                     // nearest low, stable orientation to the current one
     let best = s.q.clone(), bestScore = Infinity;
     const showFace = s.b.breakDir.lengthSq() > 0;
-    for (let k = 0; k < 48; k++) {
-      const c = new THREE.Quaternion().setFromEuler(new THREE.Euler(rng(k * 3.1 + 81) * Math.PI * 2, rng(k * 7.3 + 141) * Math.PI * 2, rng(k * 5.7 + 191) * Math.PI * 2));
-      let lo = Infinity, hi = -Infinity; for (const p of s.b.support) { const y = v.copy(p).applyQuaternion(c).y; lo = Math.min(lo, y); hi = Math.max(hi, y); }
-      // keep the current heading: rotate the candidate about Y so it differs from s.q as little as possible
-      const up = showFace ? v.copy(s.b.breakDir).applyQuaternion(c).y : 0;
-      const score = (hi - lo) / s.b.extent + (1 - Math.abs(c.dot(s.q))) * .8 - up * .25;
-      if (score < bestScore) { bestScore = score; best = c; }
+    const down=new THREE.Vector3(0,-1,0);
+    for (const face of s.b.faces) {
+      const normal=face.n.clone().applyQuaternion(s.q);
+      const c=new THREE.Quaternion().setFromUnitVectors(normal,down).multiply(s.q);
+      let lo=Infinity,hi=-Infinity;for(const p of s.b.support){const y=v.copy(p).applyQuaternion(c).y;lo=Math.min(lo,y);hi=Math.max(hi,y);}
+      const score=(hi-lo)/s.b.extent+(1-Math.abs(c.dot(s.q)))*.3;
+      if(score<bestScore){bestScore=score;best=c;}
     }
     return best;
   }
@@ -96,10 +99,11 @@ export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFr
     for (const s of S) s.b.states.push({ p: s.p.clone(), q: s.q.clone() });
     for (const s of S) {
       if (s.asleep) continue;
-      s.vel.y -= G * dt; s.vel.multiplyScalar(Math.exp(-.08 * dt));                      // gravity + air drag
+      const bed=groundAt(s.p.x,s.p.z),submerged=THREE.MathUtils.clamp((waterY-(s.p.y+low(s.b,s.q)))/Math.max(.025,s.b.extent*.45),0,1);
+      s.vel.y -= G*(1-submerged*.28) * dt; s.vel.multiplyScalar(Math.exp(-(.08+submerged*3.4) * dt));                      // gravity + air drag
       s.p.addScaledVector(s.vel, dt);
       const w = s.spin.length(); if (w > 1e-6) s.q.premultiply(tmpQ.setFromAxisAngle(v.copy(s.spin).divideScalar(w), w * dt)).normalize();
-      const pen = groundY - (s.p.y + low(s.b, s.q));
+      const pen = bed - (s.p.y + low(s.b, s.q));
       if (pen > 0) {
         s.p.y += pen; s.contacts++;
         if (s.vel.y < 0) s.vel.y = -s.vel.y * (s.contacts < 3 ? restitution : 0);
@@ -109,8 +113,8 @@ export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFr
         s.spin.multiplyScalar(Math.exp(-angDamp * 4 * dt));
         // rolling contact: tip toward the nearest stable face, faster as the piece slows down
         if (!s.rest && s.contacts > 4) s.rest = stableFace(s);
-        if (s.rest) { s.q.slerp(s.rest, 1 - Math.exp(-(2 + 6 / (1 + hs * 8)) * dt)); s.p.y=Math.max(s.p.y,groundY-low(s.b,s.q)); }
-        if (hs < .01 && s.spin.length() < .05 && s.contacts > 30) { s.vel.set(0, 0, 0); s.spin.set(0, 0, 0); if (s.rest) s.q.copy(s.rest); s.p.y = groundY - low(s.b, s.q); s.asleep = true; }
+        if (s.rest) { s.q.slerp(s.rest, 1 - Math.exp(-(2 + 6 / (1 + hs * 8)) * dt)); s.p.y=Math.max(s.p.y,bed-low(s.b,s.q)); }
+        if (hs < .01 && s.spin.length() < .05 && s.contacts > 30) { s.vel.set(0, 0, 0); s.spin.set(0, 0, 0); if (s.rest) s.q.copy(s.rest); s.p.y = bed - low(s.b, s.q); s.asleep = true; }
       } else s.spin.multiplyScalar(Math.exp(-.3 * dt));
     }
     // fragment–fragment contact: push overlapping pieces apart in the ground plane, exchange momentum
@@ -138,6 +142,7 @@ export function createCoverFracture(group, tracks, { releaseFrame = 62, impactFr
   }
   function exportFrames(){const data={fps,releaseFrame,impactFrame,objects:bodies.map(b=>({name:b.mesh.name,frames:[]}))};
     for(let frame=releaseFrame;frame<=168;frame++){update(frame);bodies.forEach((b,i)=>{b.mesh.updateMatrix();data.objects[i].frames.push({frame,matrix:b.mesh.matrix.clone().multiply(new THREE.Matrix4().makeTranslation(-b.center.x,-b.center.y,-b.center.z)).toArray()});});}return data;}
-  return { update, exportFrames, diagnostics: frame => ({ pieces: bodies.length, phase: frame < releaseFrame ? 'sealed' : frame < impactFrame ? 'toppling' : 'debris', impactFrame, groundY,
+  function audit(){return bodies.map(b=>{let min=Infinity,max=-Infinity;for(const p of b.support){const y=v.copy(p).applyQuaternion(b.mesh.quaternion).y+b.mesh.position.y;min=Math.min(min,y);max=Math.max(max,y);}return {name:b.mesh.name,bottom:min,top:max,bed:groundAt(b.mesh.position.x,b.mesh.position.z),waterY,position:b.mesh.position.toArray()};});}
+  return { update, exportFrames,audit, diagnostics: frame => ({ pieces: bodies.length, phase: frame < releaseFrame ? 'sealed' : frame < impactFrame ? 'toppling' : 'debris', impactFrame, groundY,
     toppleSeconds: curve.duration, impactOmega: omega }) };
 }

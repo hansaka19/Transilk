@@ -6,6 +6,7 @@ import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometr
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { installGemOptics } from './gem-optics.js';
 import { createEyeglassWater } from './eyeglass-water.js';
+import { createGemConfigurator } from './gem-configurator.js';
 import { createScrollShowcase } from './scroll-showcase.js';
 import { createWaterContacts } from './water-contacts.js';
 import { createForestMist } from './forest-mist.js';
@@ -87,7 +88,7 @@ async function main(){
     // crystal/agate skin of the pieces: same teal-blue as the cavity, not bleached white
     else if(m.name.includes('agate')){m.roughness=.32;m.envMapIntensity=.18;m.color.setRGB(.04,.15,.3);}
     // druzy crystals: same teal-blue as the cavity, hard flat facets that catch the light
-    else {m.vertexColors=false;m.flatShading=true;m.color.setRGB(.05,.3,.52);m.roughness=.1;m.metalness=.25;m.envMapIntensity=2.2;m.specularIntensity=1;m.clearcoat=.6;m.clearcoatRoughness=.05;}
+    else {m.vertexColors=false;m.flatShading=true;m.color.setRGB(.025,.14,.26);m.roughness=.17;m.metalness=0;m.envMapIntensity=1.35;if(m.isMeshPhysicalMaterial){m.ior=1.54;m.specularIntensity=1;m.clearcoat=.25;m.clearcoatRoughness=.08;}}
     m.needsUpdate=true;}
   }});
  // Batch static environment surfaces by material while preserving their world transforms.
@@ -124,6 +125,8 @@ async function main(){
  const waterContacts=createWaterContacts({scene,water,drops,environment:env.scene,lowMem});
  const forestMist=createForestMist(scene,{lowMem,reduced});
  const showcase=createScrollShowcase({renderer,scene,camera,hero,gem:gem.scene,geode:geode.scene,closed:closed.scene,fragments:fragments.scene,environment:env.scene,water,dropMesh,shaft,reduced,lowMem});
+ // The configurator loads beside the hero; if it fails the hero still runs (supervisor #8).
+ let configurator=null;createGemConfigurator({scene,camera,gem:gem.scene,mesh:gemMesh,material:sapphire,originalOptics:optics,renderer}).then(c=>{configurator=c;}).catch(e=>console.error('Gem configurator',e));
  const lens=createEyeglassWater(reduced,[46/24+.55,81/24+.55,94/24+.5]);
  const C=new THREE.Matrix4().makeRotationX(-Math.PI/2),Ci=C.clone().invert();
  function convert(a){return new THREE.Matrix4().fromArray(a).premultiply(C).multiply(Ci);}
@@ -132,7 +135,9 @@ async function main(){
  for(const [name,arr] of Object.entries(motion.fragments))pieceTracks[name.replaceAll(' ','_')]=track(arr);
  function sample(obj,tr,f){const x=clamp(f-1,0,tr.length-1),i=Math.floor(x),a=x-i,b=tr[Math.min(i+1,tr.length-1)];obj.position.copy(tr[i].p).lerp(b.p,a);obj.quaternion.copy(tr[i].q).slerp(b.q,a);obj.scale.copy(tr[i].s).lerp(b.s,a);}
  const matchingTracks={};for(const node of fragments.scene.children)matchingTracks[node.name]=Array.from({length:168},()=>({p:new THREE.Vector3(),q:new THREE.Quaternion(),s:new THREE.Vector3(1,1,1)}));
- const fracture=createCoverFracture(fragments.scene,matchingTracks,{releaseFrame:62,impactFrame:82,groundY:-.095});
+ const basinBed=(x,z)=>{const r=Math.hypot((x-.2)/.97,(z-5)/2.35),a=THREE.MathUtils.smoothstep(1.08-r,0,.25);return -.02*(1-a)+(-.15+.004*Math.sin(x*23-z*9))*a;};
+ const fracture=createCoverFracture(fragments.scene,matchingTracks,{releaseFrame:62,impactFrame:82,groundY:-.095,groundAt:basinBed,waterY:-.1});
+ window.transilkFragmentAudit=()=>fracture.audit();
  // M03: after impact, cracks run across the closed stone exactly where the pieces will separate
  // (Voronoi cells seeded by the real fragment centres at release), then the sapphire's blue light
  // leaks out through them. Browser shader + light (not baked in Blender).
@@ -267,11 +272,11 @@ async function main(){
   const scrollProgress=showcase.update(dt);
   waterContacts.update(reduced?100:t,scrollProgress>.001||reduced);
   renderer.shadowMap.autoUpdate=scrollProgress<.001&&frame<168;
-  optics?.update(1+scrollProgress*.7,showcase.gemLightLevel);
+  if(configurator)configurator.update(scrollProgress,showcase.gemLightLevel);else optics?.update(1+scrollProgress*.7,showcase.gemLightLevel);
   if(frame>=96)document.body.classList.add('is-revealed');
   renderer.render(scene,camera);if(frame>=168)renderer.shadowMap.autoUpdate=false;const lensDrops=lens.update(reduced||scrollProgress>.1?0:(fixed!==null?(params.has("lens")?t:0):storyClock));frames++;
   // Read-only diagnostics support visual QA without controlling scene behavior.
   window.transilkScene={scrollProgress:showcase.progress,ready:true,frame,camera:camera.position.toArray(),target:tracking.toArray(),projectedTarget:tracking.clone().project(camera).toArray(),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,elapsed,frames,wallSeconds:(performance.now()-started)/1000,mode:'realtime-threejs',quality:ultra?'4k':'native',drawingBuffer:[canvas.width,canvas.height],cameraShot:frame<25?'water-approach':frame<110?'fall-and-reveal':frame<160?'return-to-water':'water-hold',lensDrops,waterContacts:{events:waterContacts.events,bankHits:waterContacts.bankContacts,ripples:waterContacts.activeRipples},scrollProgress,sandGrains:showcase.sandCount,gemPosition:showcase.gemPosition,mist:{wisps:forestMist.count,direction:'forest-to-camera'},fracture:fracture.diagnostics(frame)};
-  if(!reduced)requestAnimationFrame(animate);
- }if(reduced){addEventListener('scroll',animate,{passive:true});addEventListener('resize',animate);}animate();
+  requestAnimationFrame(animate);
+ }animate();   // one loop only (the loop also runs under reduced motion, for the configurator)
 }
